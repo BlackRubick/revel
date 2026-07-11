@@ -1,0 +1,29 @@
+# dependencies
+node_modules
+.yarn
+
+# nuxt
+.nuxt
+.output
+.data
+dist
+
+# env
+.env
+.env.*
+!.env.example
+
+# logs
+logs
+*.log
+
+# os
+.DS_Store
+Thumbs.db
+
+# prisma
+prisma/migrations/
+
+# misc
+.cache
+.temp

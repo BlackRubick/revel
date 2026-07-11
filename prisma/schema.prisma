@@ -1,0 +1,322 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  ENCARGADO
+  ORGANIZER
+  SCANNER
+  SCREEN
+  GUEST
+}
+
+enum EventStatus {
+  DRAFT
+  ACTIVE
+  FINISHED
+  CANCELLED
+}
+
+enum RSVPStatus {
+  PENDING
+  CONFIRMED
+  DECLINED
+}
+
+enum PackageType {
+  BASIC
+  INTERMEDIATE
+  ALL_INCLUSIVE
+  ENTERPRISE
+}
+
+enum MediaStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Company {
+  id        String   @id @default(uuid())
+  name      String
+  logo      String?
+  email     String?
+  phone     String?
+  address   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users User[]
+
+  @@map("companies")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  phone        String?
+  passwordHash String
+  role         UserRole @default(ORGANIZER)
+  avatar       String?
+  isActive     Boolean  @default(true)
+  companyId    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  company       Company?         @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  events        Event[]
+  suppliers     Supplier[]
+  refreshTokens RefreshToken[]
+  permissions   UserPermission[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique @db.VarChar(512)
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model UserPermission {
+  id         String   @id @default(uuid())
+  userId     String
+  permission String
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, permission])
+  @@map("user_permissions")
+}
+
+model Package {
+  id          String      @id @default(uuid())
+  type        PackageType @unique
+  name        String
+  description String?     @db.Text
+  price       Decimal     @db.Decimal(10, 2)
+  features    Json
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  events Event[]
+
+  @@map("packages")
+}
+
+model Event {
+  id            String      @id @default(uuid())
+  slug          String      @unique
+  name          String
+  description   String?     @db.Text
+  coverImage    String?
+  date          DateTime
+  time          String
+  venue         String
+  venueAddress  String?
+  venueMapUrl   String?
+  type          String
+  tableCount    Int         @default(10)
+  tableCapacity Int         @default(8)
+  status        EventStatus @default(DRAFT)
+  packageId     String
+  organizerId   String
+  qrAlbumCode   String?     @unique
+  giftListUrl   String?
+  customColor   String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  package   Package @relation(fields: [packageId], references: [id])
+  organizer User    @relation(fields: [organizerId], references: [id])
+
+  guests      Guest[]
+  tables      EventTable[]
+  photos      Photo[]
+  videos      Video[]
+  messages    GuestMessage[]
+  invitations Invitation[]
+  payments    Payment[]
+  qrCodes     QRCode[]
+
+  @@map("events")
+}
+
+model EventTable {
+  id       String @id @default(uuid())
+  eventId  String
+  number   Int
+  name     String
+  capacity Int    @default(8)
+  positionX Float @default(0)
+  positionY Float @default(0)
+
+  event  Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  guests Guest[]
+
+  @@unique([eventId, number])
+  @@map("event_tables")
+}
+
+model Guest {
+  id           String     @id @default(uuid())
+  eventId      String
+  tableId      String?
+  name         String
+  phone        String?
+  email        String?
+  companions   Int        @default(0)
+  rsvpStatus   RSVPStatus @default(PENDING)
+  rsvpAt       DateTime?
+  checkedIn    Boolean    @default(false)
+  checkedInAt  DateTime?
+  notes        String?    @db.Text
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  table      EventTable? @relation(fields: [tableId], references: [id], onDelete: SetNull)
+  qrCodes    QRCode[]
+  invitation Invitation?
+  photos     Photo[]
+  videos     Video[]
+  messages   GuestMessage[]
+
+  @@map("guests")
+}
+
+model Invitation {
+  id          String   @id @default(uuid())
+  guestId     String   @unique
+  eventId     String
+  pdfUrl      String?
+  sentAt      DateTime?
+  viewedAt    DateTime?
+  sentViaWhatsApp Boolean @default(false)
+  createdAt   DateTime @default(now())
+
+  guest Guest @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("invitations")
+}
+
+model QRCode {
+  id        String   @id @default(uuid())
+  eventId   String
+  guestId   String?
+  type      String
+  code      String   @unique
+  qrImage   String?  @db.LongText
+  usedAt    DateTime?
+  usedCount Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  event Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  guest Guest? @relation(fields: [guestId], references: [id], onDelete: SetNull)
+
+  @@map("qr_codes")
+}
+
+model Photo {
+  id          String      @id @default(uuid())
+  eventId     String
+  guestId     String?
+  url         String
+  thumbnailUrl String?
+  publicId    String
+  caption     String?
+  status      MediaStatus @default(APPROVED)
+  uploadedAt  DateTime    @default(now())
+
+  event Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  guest Guest? @relation(fields: [guestId], references: [id], onDelete: SetNull)
+
+  @@map("photos")
+}
+
+model Video {
+  id         String      @id @default(uuid())
+  eventId    String
+  guestId    String?
+  url        String
+  thumbnailUrl String?
+  publicId   String
+  duration   Int?
+  status     MediaStatus @default(PENDING)
+  uploadedAt DateTime    @default(now())
+
+  event Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  guest Guest? @relation(fields: [guestId], references: [id], onDelete: SetNull)
+
+  @@map("videos")
+}
+
+model GuestMessage {
+  id        String   @id @default(uuid())
+  eventId   String
+  guestId   String?
+  guestName String
+  message   String   @db.Text
+  isApproved Boolean @default(true)
+  createdAt DateTime @default(now())
+
+  event Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  guest Guest? @relation(fields: [guestId], references: [id], onDelete: SetNull)
+
+  @@map("guest_messages")
+}
+
+model Supplier {
+  id          String   @id @default(uuid())
+  name        String
+  category    String
+  email       String?
+  phone       String?
+  website     String?
+  address     String?
+  notes       String?  @db.Text
+  isActive    Boolean  @default(true)
+  creatorId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  creator User @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@map("suppliers")
+}
+
+model Payment {
+  id            String   @id @default(uuid())
+  eventId       String
+  amount        Decimal  @db.Decimal(10, 2)
+  tax           Decimal  @db.Decimal(10, 2)
+  total         Decimal  @db.Decimal(10, 2)
+  currency      String   @default("MXN")
+  status        String   @default("pending")
+  method        String?
+  reference     String?
+  paidAt        DateTime?
+  createdAt     DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
