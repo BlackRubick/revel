@@ -104,7 +104,20 @@
               </div>
             </div>
 
-            
+            <!-- Iglesia -->
+            <div v-if="data.guest.event.churchName || data.guest.event.churchAddress" class="flex items-start gap-3">
+              <div class="w-8 h-8 rounded-lg bg-revel-gold/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg class="w-4 h-4 text-revel-gold" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+                </svg>
+              </div>
+              <div>
+                <p class="text-xs text-white/35 uppercase tracking-wider">Ceremonia religiosa</p>
+                <p v-if="data.guest.event.churchName" class="text-sm text-white/80">{{ data.guest.event.churchName }}</p>
+                <p v-if="data.guest.event.churchAddress" class="text-xs text-white/40">{{ data.guest.event.churchAddress }}</p>
+              </div>
+            </div>
+
             <div v-if="data.guest.table" class="flex items-center gap-3 p-3 rounded-xl bg-revel-gold/8 border border-revel-gold/20">
               <svg class="w-4 h-4 text-revel-gold flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
@@ -182,6 +195,8 @@ interface InvitationData {
       venueMapUrl?: string | null
       coverImage?: string | null
       type: string
+      churchName?: string | null
+      churchAddress?: string | null
     }
   }
 }

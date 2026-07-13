@@ -1,22 +1,27 @@
 <template>
   <div class="pointer-events-none fixed inset-0 z-0">
-    
     <div
+      v-if="!isMobile"
       ref="spotlight"
       class="absolute w-[600px] h-[600px] rounded-full"
       style="background: radial-gradient(circle, rgba(212,175,55,0.07) 0%, transparent 70%); transform: translate(-50%, -50%); will-change: left, top; transition: left 0.08s linear, top 0.08s linear;"
     />
-    
-    <canvas ref="canvas" class="absolute inset-0 w-full h-full" />
+    <canvas v-if="!isMobile" ref="canvas" class="absolute inset-0 w-full h-full" />
   </div>
 </template>
 
 <script setup lang="ts">
+const props = defineProps<{ noMobile?: boolean }>()
+
 const spotlight = ref<HTMLDivElement>()
 const canvas = ref<HTMLCanvasElement>()
+const isMobile = ref(false)
 
 onMounted(() => {
   if (!import.meta.client) return
+
+  isMobile.value = props.noMobile && (window.innerWidth < 768 || navigator.maxTouchPoints > 0)
+  if (isMobile.value) return
 
   const onMove = (e: MouseEvent) => {
     if (!spotlight.value) return
@@ -100,6 +105,7 @@ onMounted(() => {
   }
 
   let frame: number
+
   const draw = () => {
     ctx.clearRect(0, 0, cvs.width, cvs.height)
 

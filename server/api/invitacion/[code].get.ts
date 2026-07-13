@@ -23,6 +23,8 @@ export default defineEventHandler(async (event) => {
               venueMapUrl: true,
               coverImage: true,
               type: true,
+              churchName: true,
+              churchAddress: true,
             },
           },
           table: { select: { name: true, number: true } },

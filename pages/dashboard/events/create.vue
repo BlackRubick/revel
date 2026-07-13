@@ -14,10 +14,71 @@
     </div>
 
     <form @submit.prevent="handleSubmit" class="space-y-6">
-      
+
+      <!-- Imagen del evento -->
       <div class="card-revel p-6">
         <h3 class="font-display text-base font-semibold text-white mb-5 flex items-center gap-2">
           <span class="w-6 h-6 rounded-full bg-revel-gold text-revel-black text-xs font-bold inline-flex items-center justify-center leading-none shrink-0 font-sans">1</span>
+          Imagen del evento
+          <span class="text-xs text-revel-gold/60 font-sans font-normal ml-1">— se mostrará en la invitación</span>
+        </h3>
+
+        <div
+          class="relative rounded-xl overflow-hidden border-2 border-dashed transition-all cursor-pointer"
+          :class="form.coverImage ? 'border-revel-gold/40' : 'border-white/15 hover:border-revel-gold/30'"
+          style="min-height: 200px;"
+          @click="triggerFileInput"
+          @dragover.prevent
+          @drop.prevent="onDrop"
+        >
+          <!-- Preview -->
+          <img
+            v-if="form.coverImage"
+            :src="form.coverImage"
+            class="w-full object-cover"
+            style="max-height: 280px;"
+          />
+
+          <!-- Placeholder -->
+          <div v-else class="flex flex-col items-center justify-center gap-3 py-14 text-center px-6">
+            <div class="w-14 h-14 rounded-2xl bg-revel-gold/8 border border-revel-gold/20 flex items-center justify-center">
+              <svg class="w-6 h-6 text-revel-gold/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <p class="text-white/70 text-sm font-medium">Sube la imagen del evento</p>
+              <p class="text-white/35 text-xs mt-1">Haz clic o arrastra una imagen aquí · JPG, PNG, WebP</p>
+            </div>
+          </div>
+
+          <!-- Overlay al hacer hover cuando hay imagen -->
+          <div
+            v-if="form.coverImage"
+            class="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2"
+          >
+            <span class="text-white text-sm font-medium">Cambiar imagen</span>
+          </div>
+
+          <!-- Loading -->
+          <div v-if="uploadingCover" class="absolute inset-0 bg-black/60 flex items-center justify-center">
+            <div class="flex flex-col items-center gap-2">
+              <div class="w-8 h-8 border-2 border-revel-gold border-t-transparent rounded-full animate-spin" />
+              <span class="text-white/70 text-xs">Subiendo imagen...</span>
+            </div>
+          </div>
+        </div>
+
+        <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFileChange" />
+
+        <p v-if="form.coverImage" class="mt-3 text-xs text-white/40 text-center">
+          Haz clic en la imagen para cambiarla
+        </p>
+      </div>
+
+      <div class="card-revel p-6">
+        <h3 class="font-display text-base font-semibold text-white mb-5 flex items-center gap-2">
+          <span class="w-6 h-6 rounded-full bg-revel-gold text-revel-black text-xs font-bold inline-flex items-center justify-center leading-none shrink-0 font-sans">2</span>
           Información básica
         </h3>
 
@@ -62,7 +123,7 @@
       
       <div class="card-revel p-6">
         <h3 class="font-display text-base font-semibold text-white mb-5 flex items-center gap-2">
-          <span class="w-6 h-6 rounded-full bg-revel-gold text-revel-black text-xs font-bold inline-flex items-center justify-center leading-none shrink-0 font-sans">2</span>
+          <span class="w-6 h-6 rounded-full bg-revel-gold text-revel-black text-xs font-bold inline-flex items-center justify-center leading-none shrink-0 font-sans">3</span>
           Fecha y lugar
         </h3>
 
@@ -80,7 +141,7 @@
       
       <div class="card-revel p-6">
         <h3 class="font-display text-base font-semibold text-white mb-5 flex items-center gap-2">
-          <span class="w-6 h-6 rounded-full bg-revel-gold text-revel-black text-xs font-bold inline-flex items-center justify-center leading-none shrink-0 font-sans">3</span>
+          <span class="w-6 h-6 rounded-full bg-revel-gold text-revel-black text-xs font-bold inline-flex items-center justify-center leading-none shrink-0 font-sans">4</span>
           Configuración de mesas
         </h3>
 
@@ -119,10 +180,44 @@
       
       <div class="card-revel p-6">
         <h3 class="font-display text-base font-semibold text-white mb-5 flex items-center gap-2">
-          <span class="w-6 h-6 rounded-full bg-revel-gold/30 text-revel-gold text-xs font-bold inline-flex items-center justify-center leading-none shrink-0 font-sans">4</span>
+          <span class="w-6 h-6 rounded-full bg-revel-gold/30 text-revel-gold text-xs font-bold inline-flex items-center justify-center leading-none shrink-0 font-sans">5</span>
           Opciones adicionales
         </h3>
         <UiInput v-model="form.giftListUrl" label="URL de mesa de regalos" placeholder="https://..." />
+      </div>
+
+      <!-- Iglesia (solo para bodas, XV y bautizos) -->
+      <div v-if="showsChurch" class="card-revel p-6">
+        <h3 class="font-display text-base font-semibold text-white mb-5 flex items-center gap-2">
+          <span class="w-6 h-6 rounded-full bg-revel-gold/30 text-revel-gold text-xs font-bold inline-flex items-center justify-center leading-none shrink-0 font-sans">6</span>
+          Ceremonia religiosa
+        </h3>
+
+        <label class="flex items-center gap-3 cursor-pointer mb-4 select-none">
+          <div
+            class="w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0"
+            :class="form.hasChurch ? 'bg-revel-gold border-revel-gold' : 'border-white/25 bg-white/5'"
+            @click="form.hasChurch = !form.hasChurch"
+          >
+            <svg v-if="form.hasChurch" class="w-3 h-3 text-revel-black" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <span class="text-white/80 text-sm">El evento incluye ceremonia en iglesia</span>
+        </label>
+
+        <div v-if="form.hasChurch" class="space-y-4 mt-2">
+          <UiInput
+            v-model="form.churchName"
+            label="Nombre de la iglesia"
+            placeholder="Parroquia de San Juan Bautista"
+          />
+          <UiInput
+            v-model="form.churchAddress"
+            label="Dirección de la iglesia"
+            placeholder="Calle Principal 123, Colonia Centro"
+          />
+        </div>
       </div>
 
       
@@ -148,11 +243,14 @@ const router = useRouter()
 const { get } = useApi()
 
 const loading = ref(false)
+const uploadingCover = ref(false)
+const fileInput = ref<HTMLInputElement>()
 const packages = ref<{ id: string; name: string }[]>([])
 
 const form = reactive({
   name: '',
   description: '',
+  coverImage: '',
   type: '',
   packageId: '',
   date: '',
@@ -163,17 +261,57 @@ const form = reactive({
   tableCount: 10,
   tableCapacity: 8,
   giftListUrl: '',
+  hasChurch: false,
+  churchName: '',
+  churchAddress: '',
 })
+
+const CHURCH_TYPES = ['wedding', 'quinceañera', 'bautizo']
+const showsChurch = computed(() => CHURCH_TYPES.includes(form.type))
+
+function triggerFileInput() {
+  fileInput.value?.click()
+}
+
+async function uploadCover(file: File) {
+  uploadingCover.value = true
+  try {
+    const reader = new FileReader()
+    const base64 = await new Promise<string>((resolve, reject) => {
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+    const { post } = useApi()
+    const res = await post<{ url: string }>('/api/upload/cover', { imageBase64: base64 })
+    form.coverImage = res.url
+  } catch {
+    ui.error('Error', 'No se pudo subir la imagen')
+  } finally {
+    uploadingCover.value = false
+  }
+}
+
+function onFileChange(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (file) uploadCover(file)
+}
+
+function onDrop(e: DragEvent) {
+  const file = e.dataTransfer?.files?.[0]
+  if (file && file.type.startsWith('image/')) uploadCover(file)
+}
 
 const errors = reactive({ name: '', date: '' })
 
 const eventTypes = [
   { label: 'Boda', value: 'wedding' },
+  { label: 'Quinceañera (XV años)', value: 'quinceañera' },
+  { label: 'Bautizo', value: 'bautizo' },
   { label: 'Cumpleaños', value: 'birthday' },
-  { label: 'Quinceañera', value: 'quinceañera' },
-  { label: 'Corporativo', value: 'corporate' },
   { label: 'Baby Shower', value: 'baby_shower' },
   { label: 'Graduación', value: 'graduation' },
+  { label: 'Corporativo', value: 'corporate' },
   { label: 'Otro', value: 'other' },
 ]
 
@@ -188,7 +326,12 @@ async function handleSubmit() {
 
   loading.value = true
   try {
-    const event = await eventsStore.createEvent(form)
+    const payload = {
+      ...form,
+      churchName: form.hasChurch ? form.churchName : undefined,
+      churchAddress: form.hasChurch ? form.churchAddress : undefined,
+    }
+    const event = await eventsStore.createEvent(payload)
     ui.success('Evento creado', `"${event.name}" fue creado exitosamente`)
     await router.push(`/dashboard/events/${event.id}`)
   } catch (e: unknown) {

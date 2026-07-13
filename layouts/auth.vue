@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-revel-black flex items-center justify-center relative overflow-hidden">
 
     <!-- Efectos canvas: estrellas, brillantina dorada y estrellas fugaces -->
-    <LandingEffects />
+    <LandingEffects no-mobile />
 
     <!-- Gradiente de fondo -->
     <div class="absolute inset-0 pointer-events-none"

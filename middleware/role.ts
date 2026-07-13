@@ -1,6 +1,8 @@
 import { useAuthStore } from '~/stores/auth'
 
 export default defineNuxtRouteMiddleware((to) => {
+  if (import.meta.server) return
+
   const auth = useAuthStore()
   const role = auth.user?.role ?? ''
 

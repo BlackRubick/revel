@@ -281,14 +281,10 @@ function sendWhatsApp(guest: Guest) {
 
   const lines = [
     `Hola, ${guest.name}.`,
-    ``,
     `Te enviamos tu invitación para *${eventName}*.`,
-    ``,
     `Accede a tu invitación personalizada aquí:`,
     invitacionUrl,
-    ``,
     `En tu invitación podrás confirmar tu asistencia, ver los detalles del evento y la ubicación.`,
-    ``,
     `Te esperamos.`,
   ]
 

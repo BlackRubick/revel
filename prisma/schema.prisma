@@ -140,6 +140,8 @@ model Event {
   qrAlbumCode   String?     @unique
   giftListUrl   String?
   customColor   String?
+  churchName    String?
+  churchAddress String?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
