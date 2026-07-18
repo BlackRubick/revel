@@ -85,7 +85,8 @@
             <img :src="item.preview" alt="" class="w-10 h-10 object-cover rounded-lg" />
             <div class="flex-1 min-w-0">
               <p class="text-xs text-white/70 truncate">{{ item.file.name }}</p>
-              <div class="mt-1 h-1 bg-white/8 rounded-full overflow-hidden">
+              <p v-if="item.status === 'error' && item.errorMsg" class="text-xs text-red-400 mt-0.5">{{ item.errorMsg }}</p>
+              <div v-else class="mt-1 h-1 bg-white/8 rounded-full overflow-hidden">
                 <div
                   :class="['h-full rounded-full transition-all duration-300', item.status === 'done' ? 'bg-green-400' : item.status === 'error' ? 'bg-red-400' : 'bg-revel-gold']"
                   :style="{ width: `${item.progress}%` }"
@@ -241,6 +242,7 @@ interface UploadItem {
   preview: string
   status: 'pending' | 'uploading' | 'done' | 'error'
   progress: number
+  errorMsg?: string
 }
 
 const uploadQueue = ref<UploadItem[]>([])
@@ -298,8 +300,9 @@ async function uploadAll() {
       photos.value.unshift(uploaded.data)
       item.progress = 100
       item.status = 'done'
-    } catch {
+    } catch (e: unknown) {
       item.status = 'error'
+      item.errorMsg = (e as { data?: { message?: string } })?.data?.message ?? 'No se pudo subir la foto'
     }
   }
   uploading.value = false

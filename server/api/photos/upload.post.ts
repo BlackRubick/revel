@@ -30,8 +30,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'Evento no encontrado' })
   }
 
-  if (eventRecord.status !== 'ACTIVE') {
-    throw createError({ statusCode: 403, message: 'El evento no está activo' })
+  if (eventRecord.status === 'DRAFT' || eventRecord.status === 'CANCELLED') {
+    throw createError({ statusCode: 403, message: 'El álbum de este evento no está disponible' })
   }
 
   const eventDate = new Date(eventRecord.date)
