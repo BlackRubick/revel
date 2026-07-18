@@ -48,6 +48,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/album': 'Álbum digital',
   '/dashboard/qr': 'Códigos QR',
   '/dashboard/users': 'Usuarios',
+  '/dashboard/help': 'Centro de ayuda',
 }
 
 const pageTitle = computed(() => {
