@@ -160,15 +160,11 @@ body {
 /* ── Page transitions ── */
 .page-enter-active,
 .page-leave-active {
-  transition: opacity 0.35s ease, transform 0.35s ease;
+  transition: opacity 0.2s ease;
 }
-.page-enter-from {
-  opacity: 0;
-  transform: translateY(6px);
-}
+.page-enter-from,
 .page-leave-to {
   opacity: 0;
-  transform: translateY(-6px);
 }
 .layout-enter-active,
 .layout-leave-active {
@@ -721,24 +717,9 @@ body {
 /* ==============================
    PAGE TRANSITIONS
    ============================== */
-.page-enter-active,
-.page-leave-active {
-  transition: all 0.35s ease;
-}
-
-.page-enter-from {
-  opacity: 0;
-  transform: translateY(8px);
-}
-
-.page-leave-to {
-  opacity: 0;
-  transform: translateY(-8px);
-}
-
 .layout-enter-active,
 .layout-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease;
 }
 
 .layout-enter-from,
