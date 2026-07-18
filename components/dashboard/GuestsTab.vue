@@ -49,23 +49,23 @@
     </div>
 
     <!-- Barra de búsqueda y contador -->
-    <div class="flex items-center justify-between mb-5">
-      <div class="flex items-center gap-3">
-        <div class="relative">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+      <div class="flex items-center gap-2 flex-wrap">
+        <div class="relative flex-1 min-w-0">
           <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
-          <input v-model="search" type="text" placeholder="Buscar invitado..." class="input-revel pl-9 py-2 text-sm w-64" />
+          <input v-model="search" type="text" placeholder="Buscar invitado..." class="input-revel pl-9 py-2 text-sm w-full sm:w-56" />
         </div>
         <UiSelect
           v-model="rsvpFilter"
           :options="rsvpOptions"
           placeholder="Todos"
-          class="w-36"
+          class="w-32"
         />
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 flex-shrink-0">
         <div class="text-right">
           <p class="text-sm font-semibold text-white">{{ guestsStore.total }}</p>
           <p class="text-[10px] text-white/35 uppercase tracking-wider">{{ guestsStore.total === 1 ? 'invitado' : 'invitados' }}</p>
@@ -84,14 +84,15 @@
         <div class="w-8 h-8 border-2 border-revel-gold/30 border-t-revel-gold rounded-full animate-spin mx-auto" />
       </div>
 
-      <table v-else class="table-revel">
+      <div v-else class="overflow-x-auto">
+      <table class="table-revel">
         <thead>
           <tr>
             <th>Invitado</th>
-            <th>Acompañantes</th>
-            <th>Mesa</th>
+            <th class="hidden sm:table-cell">Acompañantes</th>
+            <th class="hidden md:table-cell">Mesa</th>
             <th>RSVP</th>
-            <th>Check-in</th>
+            <th class="hidden md:table-cell">Check-in</th>
             <th class="text-center">Acciones</th>
           </tr>
         </thead>
@@ -107,12 +108,12 @@
                 <p v-if="guest.email" class="text-xs text-white/35">{{ guest.email }}</p>
               </div>
             </td>
-            <td>
+            <td class="hidden sm:table-cell">
               <span class="text-white/60">
                 {{ guest.companions > 0 ? `+${guest.companions}` : '—' }}
               </span>
             </td>
-            <td>
+            <td class="hidden md:table-cell">
               <span v-if="guest.table" class="badge-gold text-xs">{{ guest.table.name }}</span>
               <span v-else class="text-white/25 text-xs">Sin asignar</span>
             </td>
@@ -121,7 +122,7 @@
                 {{ rsvpLabel(guest.rsvpStatus) }}
               </UiBadge>
             </td>
-            <td>
+            <td class="hidden md:table-cell">
               <span v-if="guest.checkedIn" class="badge-success text-xs inline-flex items-center gap-1">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
@@ -185,6 +186,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
     </div>
 
     <!-- Modal: Ver QR del invitado -->

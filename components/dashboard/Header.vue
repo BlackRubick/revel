@@ -1,5 +1,5 @@
 <template>
-  <header class="h-16 border-b border-white/6 bg-revel-gray-dark/50 backdrop-blur-sm flex items-center px-6 gap-4 sticky top-0 z-30">
+  <header class="h-16 border-b border-white/6 bg-revel-gray-dark/50 backdrop-blur-sm flex items-center px-4 lg:px-6 gap-4 sticky top-0 z-30">
     
     <button
       class="w-8 h-8 flex items-center justify-center rounded-lg text-white/50 hover:text-white hover:bg-white/5 transition-all"

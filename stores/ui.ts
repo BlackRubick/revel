@@ -17,7 +17,7 @@ interface UiState {
 
 export const useUiStore = defineStore('ui', {
   state: (): UiState => ({
-    sidebarOpen: true,
+    sidebarOpen: false,
     toasts: [],
     loading: {},
     modals: {},

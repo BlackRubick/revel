@@ -2,7 +2,9 @@
   <aside
     :class="[
       'fixed top-0 left-0 h-screen flex flex-col bg-revel-gray-dark border-r border-white/6 transition-all duration-300 z-40',
-      ui.sidebarOpen ? 'w-64' : 'w-16',
+      ui.sidebarOpen
+        ? 'w-64 translate-x-0'
+        : 'w-64 -translate-x-full lg:translate-x-0 lg:w-16',
     ]"
   >
     
@@ -81,6 +83,13 @@ const ui = useUiStore()
 const auth = useAuthStore()
 const { logout } = useAuth()
 const route = useRoute()
+
+// Cerrar drawer al navegar en móvil
+watch(() => route.path, () => {
+  if (import.meta.client && window.innerWidth < 1024) {
+    ui.sidebarOpen = false
+  }
+})
 
 const initials = computed(() =>
   auth.user?.name

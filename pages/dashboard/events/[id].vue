@@ -1,16 +1,16 @@
 <template>
   <div v-if="event">
     
-    <div class="flex items-start justify-between mb-8">
-      <div class="flex items-start gap-4">
-        <NuxtLink to="/dashboard/events" class="w-9 h-9 rounded-xl glass flex items-center justify-center text-white/60 hover:text-white transition-colors mt-1">
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+      <div class="flex items-start gap-3">
+        <NuxtLink to="/dashboard/events" class="w-9 h-9 rounded-xl glass flex items-center justify-center text-white/60 hover:text-white transition-colors mt-1 flex-shrink-0">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
         </NuxtLink>
-        <div>
-          <div class="flex items-center gap-3 mb-1">
-            <h2 class="font-display text-2xl font-bold text-white">{{ event.name }}</h2>
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2 mb-1">
+            <h2 class="font-display text-xl lg:text-2xl font-bold text-white truncate">{{ event.name }}</h2>
             <UiBadge :variant="statusVariant(event.status)" dot>{{ statusLabel(event.status) }}</UiBadge>
           </div>
           <p class="text-white/45 text-sm">
@@ -19,7 +19,7 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 flex-wrap flex-shrink-0">
         <UiButton
           variant="secondary"
           size="sm"
@@ -34,14 +34,14 @@
           <svg v-else class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
           </svg>
-          Descargar fotos{{ features.can('download') && (event._count?.photos ?? 0) > 0 ? ` (${event._count?.photos})` : '' }}
+          <span class="hidden sm:inline">Descargar fotos{{ features.can('download') && (event._count?.photos ?? 0) > 0 ? ` (${event._count?.photos})` : '' }}</span>
         </UiButton>
         <UiButton variant="secondary" size="sm" @click="showPreviewModal = true">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
-          Vista previa
+          <span class="hidden sm:inline">Vista previa</span>
         </UiButton>
         <UiButton variant="secondary" size="sm" @click="openEdit">
           Editar
@@ -234,8 +234,8 @@
       </div>
 
       <!-- Fila 1: nombre + estado -->
-      <div class="grid grid-cols-3 gap-4">
-        <div class="col-span-2">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="sm:col-span-2">
           <UiInput v-model="editForm.name" label="Nombre del evento" required />
         </div>
         <UiSelect
@@ -250,7 +250,7 @@
       </div>
 
       <!-- Fila 2: tipo + fecha + hora -->
-      <div class="grid grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <UiSelect v-model="editForm.type" label="Tipo" :options="eventTypes" />
         <UiInput v-model="editForm.date" label="Fecha" type="date" required />
         <UiInput v-model="editForm.time" label="Hora" type="time" />
@@ -258,13 +258,13 @@
 
       <!-- Fila 3: lugar -->
       <UiInput v-model="editForm.venue" label="Nombre del lugar" required />
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <UiInput v-model="editForm.venueAddress" label="Dirección" />
         <UiInput v-model="editForm.venueMapUrl" label="URL Google Maps" />
       </div>
 
       <!-- Fila 4: iglesia -->
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <UiInput v-model="editForm.churchName" label="Iglesia / Capilla" />
         <UiInput v-model="editForm.churchAddress" label="Dirección de la iglesia" />
       </div>
