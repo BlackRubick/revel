@@ -76,7 +76,7 @@
           </NuxtLink>
         </div>
 
-        <div v-if="loading" class="space-y-3">
+        <div v-if="loading && !stats" class="space-y-3">
           <div v-for="i in 3" :key="i" class="h-16 shimmer rounded-xl" />
         </div>
 
@@ -168,7 +168,7 @@ const { get } = useApi()
 
 
 const stats = ref<DashboardStats | null>(null)
-const loading = ref(stats.value === null)
+const loading = ref(true)
 
 const confirmRate = computed(() => {
   if (!stats.value?.totalGuests) return 0

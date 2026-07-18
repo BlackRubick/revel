@@ -56,7 +56,7 @@
     </div>
 
 
-    <div v-if="loading" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <div v-if="loading && !eventsStore.events.length" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
       <div v-for="i in 6" :key="i" class="h-52 shimmer rounded-2xl" />
     </div>
 
@@ -170,7 +170,7 @@ import { useEventsStore } from '~/stores/events'
 import type { Event } from '~/types'
 
 const eventsStore = useEventsStore()
-const loading = ref(eventsStore.events.length === 0)
+const loading = ref(true)
 const search = ref('')
 const activeFilter = ref('ACTIVE')
 const showDeleteConfirm = ref(false)
