@@ -19,6 +19,7 @@
           <tr>
             <th>Usuario</th>
             <th>Rol</th>
+            <th v-if="isAdmin">Empresa</th>
             <th>Estado</th>
             <th>Creado</th>
             <th class="text-center">Acciones</th>
@@ -39,6 +40,15 @@
             </td>
             <td>
               <UiBadge :variant="roleVariant(user.role)">{{ roleLabel(user.role) }}</UiBadge>
+            </td>
+            <td v-if="isAdmin">
+              <span v-if="user.company" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs text-white/70">
+                <svg class="w-3 h-3 text-revel-gold/60 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                {{ user.company.name }}
+              </span>
+              <span v-else class="text-white/25 text-xs">—</span>
             </td>
             <td>
               <UiBadge :variant="user.isActive ? 'success' : 'danger'" dot>
@@ -66,7 +76,7 @@
             </td>
           </tr>
           <tr v-if="!users.length && !loading">
-            <td colspan="5" class="text-center py-8 text-white/30 text-sm">Sin usuarios</td>
+            <td :colspan="isAdmin ? 6 : 5" class="text-center py-8 text-white/30 text-sm">Sin usuarios</td>
           </tr>
         </tbody>
       </table>

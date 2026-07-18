@@ -23,6 +23,7 @@ export default defineEventHandler(async (event) => {
       role: true,
       isActive: true,
       createdAt: true,
+      company: { select: { id: true, name: true } },
     },
     orderBy: { createdAt: 'desc' },
   })
