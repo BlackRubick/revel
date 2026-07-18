@@ -59,9 +59,13 @@ const pageTitles: Record<string, string> = {
 }
 
 const pageTitle = computed(() => {
-  for (const [path, title] of Object.entries(pageTitles)) {
-    if (route.path === path || route.path.startsWith(path + '/')) return title
-  }
+  // Primero buscar coincidencia exacta, luego prefijo más largo
+  if (pageTitles[route.path]) return pageTitles[route.path]
+  const match = Object.entries(pageTitles)
+    .filter(([path]) => path !== '/dashboard' && route.path.startsWith(path + '/'))
+    .sort((a, b) => b[0].length - a[0].length)[0]
+  if (match) return match[1]
+  if (route.path.startsWith('/dashboard')) return pageTitles['/dashboard']
   return 'Rével'
 })
 </script>

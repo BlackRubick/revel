@@ -119,9 +119,19 @@ definePageMeta({ layout: 'dashboard' })
 import { useEventsStore } from '~/stores/events'
 
 const eventsStore = useEventsStore()
-const selectedEventId = ref('')
+const route = useRoute()
+const router = useRouter()
+const selectedEventId = ref((route.query.event as string) || '')
 const loading = ref(true)
 const search = ref('')
+
+// Sincronizar selectedEventId con la URL para que el botón atrás del navegador funcione
+watch(selectedEventId, (id) => {
+  router.replace({ query: id ? { event: id } : {} })
+})
+watch(() => route.query.event, (eventId) => {
+  selectedEventId.value = (eventId as string) || ''
+})
 
 const filteredEvents = computed(() =>
   eventsStore.events.filter((e) =>
