@@ -263,19 +263,44 @@ function handleDrop(e: DragEvent) {
   if (files) addFiles(Array.from(files))
 }
 
-function addFiles(files: File[]) {
-  files.forEach((file) => {
+function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader()
+    reader.onerror = reject
     reader.onload = (e) => {
-      uploadQueue.value.push({
-        id: Math.random().toString(36).slice(2),
-        file,
-        preview: e.target?.result as string,
-        status: 'pending',
-        progress: 0,
-      })
+      const img = new Image()
+      img.onerror = reject
+      img.onload = () => {
+        const MAX = 1600
+        let { width, height } = img
+        if (width > MAX || height > MAX) {
+          if (width > height) { height = Math.round(height * MAX / width); width = MAX }
+          else { width = Math.round(width * MAX / height); height = MAX }
+        }
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')!
+        ctx.drawImage(img, 0, 0, width, height)
+        resolve(canvas.toDataURL('image/jpeg', 0.82))
+      }
+      img.src = e.target?.result as string
     }
     reader.readAsDataURL(file)
+  })
+}
+
+function addFiles(files: File[]) {
+  files.forEach(async (file) => {
+    const id = Math.random().toString(36).slice(2)
+    uploadQueue.value.push({ id, file, preview: '', status: 'pending', progress: 0 })
+    try {
+      const preview = await compressImage(file)
+      const item = uploadQueue.value.find((i) => i.id === id)
+      if (item) item.preview = preview
+    } catch {
+      // preview fallback — upload still works
+    }
   })
 }
 
@@ -285,12 +310,7 @@ async function uploadAll() {
     item.status = 'uploading'
     item.progress = 30
     try {
-      const reader = new FileReader()
-      const base64 = await new Promise<string>((res, rej) => {
-        reader.onload = (e) => res(e.target?.result as string)
-        reader.onerror = rej
-        reader.readAsDataURL(item.file)
-      })
+      const base64 = item.preview || await compressImage(item.file)
 
       item.progress = 70
       const uploaded = await $fetch<{ success: boolean; data: Photo }>('/api/photos/upload', {
