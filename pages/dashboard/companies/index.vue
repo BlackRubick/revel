@@ -334,7 +334,7 @@ const deleting = ref(false)
 const companyToDelete = ref<Company | null>(null)
 
 function encargadoOf(company: Company) {
-  return company.users?.find((u) => (u as { role: string }).role === 'ENCARGADO') ?? null
+  return company.users?.[0] ?? null
 }
 
 function openEdit(company: Company) {
