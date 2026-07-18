@@ -17,6 +17,8 @@ const schema = z.object({
   status: z.enum(['DRAFT', 'ACTIVE', 'FINISHED', 'CANCELLED']).optional(),
   giftListUrl: z.string().optional(),
   customColor: z.string().optional(),
+  churchName: z.string().optional(),
+  churchAddress: z.string().optional(),
 })
 
 export default defineEventHandler(async (event) => {
@@ -42,7 +44,12 @@ export default defineEventHandler(async (event) => {
   const updated = await prisma.event.update({
     where: { id },
     data: updateData,
-    include: { package: { select: { name: true, type: true } } },
+    include: {
+      package: true,
+      organizer: { select: { id: true, name: true, email: true } },
+      tables: { orderBy: { number: 'asc' }, include: { guests: true } },
+      _count: { select: { guests: true, photos: true, videos: true, messages: true } },
+    },
   })
 
   return { success: true, data: updated }

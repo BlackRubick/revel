@@ -1,6 +1,54 @@
 <template>
   <div>
-    
+
+    <!-- Panel: link de registro -->
+    <div class="card-revel p-4 mb-5 border border-revel-gold/20 bg-revel-gold/4">
+      <div class="flex items-start justify-between gap-4 flex-wrap">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-revel-gold/15 flex items-center justify-center flex-shrink-0">
+            <svg class="w-4.5 h-4.5 text-revel-gold" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-white mb-0.5">Link de registro</p>
+            <p class="text-xs text-white/40 font-mono truncate max-w-xs">{{ registroUrl }}</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <button
+            :class="['flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-all duration-200',
+              linkCopied
+                ? 'border-green-500/40 bg-green-500/15 text-green-400'
+                : 'border-white/10 text-white/70 hover:text-white hover:border-white/20']"
+            @click="copyRegistroLink"
+          >
+            <Transition name="icon-swap" mode="out-in">
+              <svg v-if="linkCopied" key="check" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              <svg v-else key="copy" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </Transition>
+            {{ linkCopied ? '¡Copiado!' : 'Copiar link' }}
+          </button>
+
+          <button
+            class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-green-500/15 border border-green-500/25 text-green-400 hover:bg-green-500/25 transition-all"
+            @click="shareWhatsApp"
+          >
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+            WhatsApp
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Barra de búsqueda y contador -->
     <div class="flex items-center justify-between mb-5">
       <div class="flex items-center gap-3">
         <div class="relative">
@@ -17,18 +65,20 @@
         />
       </div>
 
-      <div class="flex items-center gap-2">
-        <span class="text-xs text-white/40">{{ guestsStore.total }} invitados</span>
-        <UiButton size="sm" @click="showAddModal = true">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          Agregar invitado
-        </UiButton>
+      <div class="flex items-center gap-3">
+        <div class="text-right">
+          <p class="text-sm font-semibold text-white">{{ guestsStore.total }}</p>
+          <p class="text-[10px] text-white/35 uppercase tracking-wider">{{ guestsStore.total === 1 ? 'invitado' : 'invitados' }}</p>
+        </div>
+        <div class="h-8 w-px bg-white/10" />
+        <div class="text-right">
+          <p class="text-sm font-semibold text-white">{{ totalPersonas }}</p>
+          <p class="text-[10px] text-white/35 uppercase tracking-wider">personas en total</p>
+        </div>
       </div>
     </div>
 
-    
+    <!-- Tabla de invitados -->
     <div class="card-revel overflow-hidden">
       <div v-if="guestsStore.loading" class="p-8 text-center">
         <div class="w-8 h-8 border-2 border-revel-gold/30 border-t-revel-gold rounded-full animate-spin mx-auto" />
@@ -38,9 +88,8 @@
         <thead>
           <tr>
             <th>Invitado</th>
-            <th>Contacto</th>
-            <th>Mesa</th>
             <th>Acompañantes</th>
+            <th>Mesa</th>
             <th>RSVP</th>
             <th>Check-in</th>
             <th class="text-center">Acciones</th>
@@ -59,14 +108,13 @@
               </div>
             </td>
             <td>
-              <span class="text-white/60">{{ guest.phone || '—' }}</span>
+              <span class="text-white/60">
+                {{ guest.companions > 0 ? `+${guest.companions}` : '—' }}
+              </span>
             </td>
             <td>
               <span v-if="guest.table" class="badge-gold text-xs">{{ guest.table.name }}</span>
               <span v-else class="text-white/25 text-xs">Sin asignar</span>
-            </td>
-            <td>
-              <span class="text-white/60">+{{ guest.companions }}</span>
             </td>
             <td>
               <UiBadge :variant="rsvpVariant(guest.rsvpStatus)" dot>
@@ -75,14 +123,16 @@
             </td>
             <td>
               <span v-if="guest.checkedIn" class="badge-success text-xs inline-flex items-center gap-1">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
                 Asistió
               </span>
               <span v-else class="text-white/25 text-xs">—</span>
             </td>
             <td>
               <div class="flex items-center justify-center gap-2">
-                
+
                 <button
                   class="w-9 h-9 rounded-xl flex items-center justify-center text-white/50 hover:text-revel-gold hover:bg-revel-gold/10 transition-all"
                   title="Ver QR"
@@ -92,27 +142,17 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                   </svg>
                 </button>
-                
-                <button
-                  :class="['w-9 h-9 rounded-xl flex items-center justify-center transition-all', (!guest.phone || features.cannot('whatsapp')) ? 'text-white/15 cursor-not-allowed' : 'text-white/50 hover:text-green-400 hover:bg-green-500/10']"
-                  :title="!guest.phone ? 'Sin número de teléfono' : features.cannot('whatsapp') ? `Requiere plan ${FEATURE_MIN_PLAN['whatsapp']}` : 'Enviar invitación por WhatsApp'"
-                  @click="features.can('whatsapp') && sendWhatsApp(guest)"
-                >
-                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                  </svg>
-                </button>
-                
+
                 <button
                   :class="['w-9 h-9 rounded-xl flex items-center justify-center transition-all', guest.qrCodes?.[0]?.code ? 'text-white/50 hover:text-blue-400 hover:bg-blue-500/10' : 'text-white/15 cursor-not-allowed']"
-                  :title="guest.qrCodes?.[0]?.code ? 'Copiar link de confirmación' : 'Sin código generado'"
-                  @click="copyRsvpLink(guest)"
+                  :title="guest.qrCodes?.[0]?.code ? 'Copiar link de invitación' : 'Sin código generado'"
+                  @click="copyInvitacionLink(guest)"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                   </svg>
                 </button>
-                
+
                 <button
                   class="w-9 h-9 rounded-xl flex items-center justify-center text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-all"
                   title="Eliminar"
@@ -125,41 +165,33 @@
               </div>
             </td>
           </tr>
+
           <tr v-if="!filteredGuests.length">
-            <td colspan="7" class="text-center py-8 text-white/30 text-sm">
-              No se encontraron invitados
+            <td colspan="6" class="text-center py-12">
+              <div class="flex flex-col items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-revel-gold/8 flex items-center justify-center text-revel-gold/40">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                  </svg>
+                </div>
+                <p class="text-white/30 text-sm">
+                  {{ search || rsvpFilter ? 'No se encontraron invitados con ese filtro' : 'Aún no hay invitados registrados' }}
+                </p>
+                <p v-if="!search && !rsvpFilter" class="text-white/20 text-xs">
+                  Comparte el link de registro para que se vayan agregando aquí
+                </p>
+              </div>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    
-    <UiModal v-model="showAddModal" title="Agregar invitado">
-      <form @submit.prevent="addGuest" class="space-y-4">
-        <UiInput v-model="newGuest.name" label="Nombre completo" required />
-        <div class="grid grid-cols-2 gap-4">
-          <UiInput v-model="newGuest.phone" label="Teléfono" type="tel" />
-          <UiInput v-model="newGuest.email" label="Correo" type="email" />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-white/70 mb-1.5">Acompañantes</label>
-          <input v-model.number="newGuest.companions" type="number" min="0" max="20" class="input-revel" />
-        </div>
-        <UiInput v-model="newGuest.notes" label="Notas" />
-      </form>
-      <template #footer>
-        <UiButton variant="ghost" size="sm" @click="showAddModal = false">Cancelar</UiButton>
-        <UiButton size="sm" :loading="addLoading" @click="addGuest">Agregar</UiButton>
-      </template>
-    </UiModal>
-
-    
+    <!-- Modal: Ver QR del invitado -->
     <UiModal v-model="showQrModal" title="Código QR del invitado" size="sm">
       <div v-if="selectedGuest" class="text-center">
         <p class="text-white/70 text-sm font-medium mb-4">{{ selectedGuest.name }}</p>
 
-        
         <div v-if="selectedGuest.qrCodes?.[0]?.code">
           <div class="flex justify-center mb-3">
             <div class="bg-white p-3 rounded-2xl shadow-lg">
@@ -170,7 +202,7 @@
           <div class="flex gap-2">
             <button
               class="flex-1 text-xs text-revel-gold border border-revel-gold/30 rounded-lg py-2 hover:bg-revel-gold/10 transition-colors"
-              @click="copyRsvpLink(selectedGuest)"
+              @click="copyInvitacionLink(selectedGuest)"
             >
               Copiar link
             </button>
@@ -183,7 +215,6 @@
           </div>
         </div>
 
-        
         <div v-else class="py-4">
           <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mx-auto mb-3 text-white/30">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -197,6 +228,7 @@
         </div>
       </div>
     </UiModal>
+
   </div>
 </template>
 
@@ -206,24 +238,37 @@ import { useUiStore } from '~/stores/ui'
 import { useEventFeatures, FEATURE_MIN_PLAN } from '~/composables/useEventFeatures'
 import type { Guest } from '~/types'
 
-const props = defineProps<{ eventId: string; eventName?: string; packageType?: string }>()
+const props = defineProps<{
+  eventId: string
+  eventName?: string
+  packageType?: string
+  eventSlug?: string
+}>()
 
 const guestsStore = useGuestsStore()
 const ui = useUiStore()
 const features = useEventFeatures(props.packageType)
+const config = useRuntimeConfig()
 
 const search = ref('')
 const rsvpFilter = ref('')
-const showAddModal = ref(false)
 const showQrModal = ref(false)
 const selectedGuest = ref<Guest | null>(null)
-const addLoading = ref(false)
 const generatingQr = ref(false)
 const qrModalCanvas = ref<HTMLCanvasElement | null>(null)
+const linkCopied = ref(false)
 
-const newGuest = reactive({
-  name: '', phone: '', email: '', companions: 0, notes: '',
+const registroUrl = computed(() => {
+  if (!props.eventSlug) return ''
+  const base = typeof window !== 'undefined'
+    ? window.location.origin
+    : (config.public.appUrl || 'http://localhost:3000')
+  return `${base}/registro/${props.eventSlug}`
 })
+
+const totalPersonas = computed(() =>
+  guestsStore.guests.reduce((sum, g) => sum + 1 + g.companions, 0),
+)
 
 const rsvpOptions = [
   { label: 'Todos', value: '' },
@@ -250,23 +295,59 @@ function rsvpVariant(status: string): 'success' | 'warning' | 'danger' {
   return map[status] ?? 'warning'
 }
 
-const config = useRuntimeConfig()
-
 function getInvitacionUrl(guest: Guest): string | null {
   const code = guest.qrCodes?.[0]?.code
   return code ? `${config.public.appUrl}/invitacion/${code}` : null
 }
 
-function getRsvpUrl(guest: Guest): string | null {
-  const code = guest.qrCodes?.[0]?.code
-  return code ? `${config.public.appUrl}/confirmar/${code}` : null
+async function copyRegistroLink() {
+  const url = registroUrl.value
+  if (!url) {
+    ui.error('Sin link', 'No se pudo obtener el link de registro')
+    return
+  }
+
+  const el = document.createElement('textarea')
+  el.value = url
+  el.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none'
+  document.body.appendChild(el)
+  el.focus()
+  el.select()
+  try {
+    document.execCommand('copy')
+  } catch {
+    // si execCommand falla, intentar clipboard API
+    try { await navigator.clipboard.writeText(url) } catch { /* nada */ }
+  }
+  document.body.removeChild(el)
+
+  linkCopied.value = true
+  setTimeout(() => { linkCopied.value = false }, 2000)
 }
 
-function copyRsvpLink(guest: Guest) {
-  const url = getInvitacionUrl(guest) ?? getRsvpUrl(guest)
+function shareWhatsApp() {
+  if (!registroUrl.value) return
+  const eventName = props.eventName ?? 'nuestro evento'
+  const msg = `¡Estás invitado/a a *${eventName}*!\n\nRegístrate aquí para obtener tu invitación personalizada:\n${registroUrl.value}`
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank')
+}
+
+async function copyInvitacionLink(guest: Guest) {
+  const url = getInvitacionUrl(guest)
   if (!url) return
-  navigator.clipboard.writeText(url)
-  ui.success('Link copiado', `Invitación de ${guest.name} copiada al portapapeles`)
+  try {
+    await navigator.clipboard.writeText(url)
+  } catch {
+    const el = document.createElement('textarea')
+    el.value = url
+    el.style.position = 'fixed'
+    el.style.opacity = '0'
+    document.body.appendChild(el)
+    el.select()
+    document.execCommand('copy')
+    document.body.removeChild(el)
+  }
+  ui.success('Link copiado', `Invitación de ${guest.name}`)
 }
 
 function sendWhatsApp(guest: Guest) {
@@ -276,9 +357,8 @@ function sendWhatsApp(guest: Guest) {
   }
   const phone = guest.phone.replace(/\D/g, '')
   const normalized = phone.startsWith('52') ? phone : `52${phone}`
-  const invitacionUrl = getInvitacionUrl(guest) ?? getRsvpUrl(guest) ?? `${config.public.appUrl}/confirmar`
+  const invitacionUrl = getInvitacionUrl(guest) ?? `${config.public.appUrl}/confirmar`
   const eventName = props.eventName ?? 'nuestro evento'
-
   const lines = [
     `Hola, ${guest.name}.`,
     `Te enviamos tu invitación para *${eventName}*.`,
@@ -287,7 +367,6 @@ function sendWhatsApp(guest: Guest) {
     `En tu invitación podrás confirmar tu asistencia, ver los detalles del evento y la ubicación.`,
     `Te esperamos.`,
   ]
-
   window.open(`https://wa.me/${normalized}?text=${encodeURIComponent(lines.join('\n'))}`, '_blank')
 }
 
@@ -337,21 +416,6 @@ function downloadQRModal() {
   link.click()
 }
 
-async function addGuest() {
-  if (!newGuest.name) return
-  addLoading.value = true
-  try {
-    await guestsStore.createGuest({ ...newGuest, eventId: props.eventId })
-    ui.success('Invitado agregado', newGuest.name)
-    Object.assign(newGuest, { name: '', phone: '', email: '', companions: 0, notes: '' })
-    showAddModal.value = false
-  } catch {
-    ui.error('Error', 'No se pudo agregar el invitado')
-  } finally {
-    addLoading.value = false
-  }
-}
-
 async function deleteGuest(id: string) {
   await guestsStore.deleteGuest(id)
   ui.success('Invitado eliminado')
@@ -366,3 +430,18 @@ watch(showQrModal, async (open) => {
 
 onMounted(() => guestsStore.fetchGuests(props.eventId))
 </script>
+
+<style scoped>
+.icon-swap-enter-active,
+.icon-swap-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.icon-swap-enter-from {
+  opacity: 0;
+  transform: scale(0.6) rotate(-10deg);
+}
+.icon-swap-leave-to {
+  opacity: 0;
+  transform: scale(0.6) rotate(10deg);
+}
+</style>

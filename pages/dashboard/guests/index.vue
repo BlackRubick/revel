@@ -108,7 +108,7 @@
         </div>
       </div>
 
-      <DashboardGuestsTab :event-id="selectedEventId" :event-name="currentEvent?.name" />
+      <DashboardGuestsTab :event-id="selectedEventId" :event-name="currentEvent?.name" :event-slug="currentEvent?.slug" />
     </template>
   </div>
 </template>
@@ -120,7 +120,7 @@ import { useEventsStore } from '~/stores/events'
 
 const eventsStore = useEventsStore()
 const selectedEventId = ref('')
-const loading = ref(true)
+const loading = ref(eventsStore.events.length === 0)
 const search = ref('')
 
 const filteredEvents = computed(() =>

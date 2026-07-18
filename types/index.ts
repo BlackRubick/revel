@@ -68,6 +68,8 @@ export interface Event {
   qrAlbumCode?: string
   giftListUrl?: string
   customColor?: string
+  churchName?: string
+  churchAddress?: string
   createdAt: string
   updatedAt: string
   package?: Package
@@ -81,12 +83,15 @@ export interface Event {
   }
 }
 
+export type TableShape = 'ROUND' | 'RECTANGULAR'
+
 export interface EventTable {
   id: string
   eventId: string
   number: number
   name: string
   capacity: number
+  shape: TableShape
   positionX: number
   positionY: number
   guests?: Guest[]

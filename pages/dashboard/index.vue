@@ -167,8 +167,8 @@ const auth = useAuthStore()
 const { get } = useApi()
 
 
-const loading = ref(true)
 const stats = ref<DashboardStats | null>(null)
+const loading = ref(stats.value === null)
 
 const confirmRate = computed(() => {
   if (!stats.value?.totalGuests) return 0

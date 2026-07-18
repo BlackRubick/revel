@@ -43,7 +43,7 @@ export default defineEventHandler(async (event) => {
       qrAlbumCode,
       organizerId: auth.userId,
       date: new Date(data.date),
-      status: 'DRAFT',
+      status: 'ACTIVE',
     },
     include: {
       package: { select: { name: true, type: true } },

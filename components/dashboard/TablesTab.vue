@@ -25,10 +25,29 @@
         @click="selectTable(table)"
       >
         <div class="flex items-center justify-between mb-3">
-          <h4 class="font-display font-semibold text-white text-sm">{{ table.name }}</h4>
-          <span :class="['text-xs font-medium', occupancyColor(table)]">
-            {{ headcount(table) }}/{{ table.capacity }}
-          </span>
+          <div class="flex items-center gap-2 min-w-0">
+            <span v-if="table.shape === 'ROUND'" class="text-white/30 flex-shrink-0" title="Redonda">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+            </span>
+            <span v-else class="text-white/30 flex-shrink-0" title="Rectangular">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/></svg>
+            </span>
+            <h4 class="font-display font-semibold text-white text-sm truncate">{{ table.name }}</h4>
+          </div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <span :class="['text-xs font-medium', occupancyColor(table)]">
+              {{ headcount(table) }}/{{ table.capacity }}
+            </span>
+            <button
+              class="w-6 h-6 rounded-lg flex items-center justify-center text-white/30 hover:text-revel-gold hover:bg-revel-gold/10 transition-all"
+              title="Editar mesa"
+              @click.stop="openEditTable(table)"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div class="h-1 bg-white/8 rounded-full mb-3 overflow-hidden">
@@ -60,7 +79,43 @@
       </div>
     </div>
 
-    
+
+    <UiModal v-model="showEditTableModal" title="Editar mesa" size="sm">
+      <form v-if="editingTable" class="space-y-4" @submit.prevent="saveEditTable">
+        <UiInput v-model="editTableForm.name" label="Nombre de la mesa" required />
+        <div>
+          <label class="block text-sm font-medium text-white/70 mb-1.5">Capacidad (personas)</label>
+          <input v-model.number="editTableForm.capacity" type="number" min="1" max="50" class="input-revel" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-white/70 mb-3">Forma / Orientación</label>
+          <div class="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              :class="['flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all', editTableForm.shape === 'ROUND' ? 'border-revel-gold bg-revel-gold/10 text-revel-gold' : 'border-white/10 text-white/40 hover:border-white/25']"
+              @click="editTableForm.shape = 'ROUND'"
+            >
+              <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>
+              <span class="text-xs font-medium">Redonda</span>
+            </button>
+            <button
+              type="button"
+              :class="['flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all', editTableForm.shape === 'RECTANGULAR' ? 'border-revel-gold bg-revel-gold/10 text-revel-gold' : 'border-white/10 text-white/40 hover:border-white/25']"
+              @click="editTableForm.shape = 'RECTANGULAR'"
+            >
+              <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/></svg>
+              <span class="text-xs font-medium">Rectangular</span>
+            </button>
+          </div>
+        </div>
+      </form>
+      <template #footer>
+        <UiButton variant="ghost" size="sm" @click="showEditTableModal = false">Cancelar</UiButton>
+        <UiButton size="sm" :loading="editTableLoading" @click="saveEditTable">Guardar</UiButton>
+      </template>
+    </UiModal>
+
+
     <UiModal v-model="showTableModal" :title="selectedTable?.name" size="lg">
       <div v-if="selectedTable">
 
@@ -171,17 +226,28 @@
 <script setup lang="ts">
 import { useGuestsStore } from '~/stores/guests'
 import { useUiStore } from '~/stores/ui'
-import type { EventTable, Guest } from '~/types'
+import type { EventTable, Guest, TableShape } from '~/types'
 
 const props = defineProps<{ eventId: string; tables: EventTable[] }>()
+const emit = defineEmits<{ (e: 'tableUpdated', table: EventTable): void }>()
 
 const guestsStore = useGuestsStore()
 const ui = useUiStore()
+const { put } = useApi()
 
 const showTableModal = ref(false)
+const showEditTableModal = ref(false)
 const selectedTable = ref<EventTable | null>(null)
+const editingTable = ref<EventTable | null>(null)
 const selectedGuestId = ref('')
 const assigning = ref(false)
+const editTableLoading = ref(false)
+
+const editTableForm = reactive<{ name: string; capacity: number; shape: TableShape }>({
+  name: '',
+  capacity: 8,
+  shape: 'ROUND',
+})
 
 const totalCapacity = computed(() => props.tables.reduce((s, t) => s + t.capacity, 0))
 const totalSeated = computed(() => props.tables.reduce((s, t) => s + headcount(t), 0))
@@ -228,6 +294,35 @@ function selectTable(table: EventTable) {
   selectedTable.value = table
   selectedGuestId.value = ''
   showTableModal.value = true
+}
+
+function openEditTable(table: EventTable) {
+  editingTable.value = table
+  Object.assign(editTableForm, {
+    name: table.name,
+    capacity: table.capacity,
+    shape: table.shape ?? 'ROUND',
+  })
+  showEditTableModal.value = true
+}
+
+async function saveEditTable() {
+  if (!editingTable.value) return
+  editTableLoading.value = true
+  try {
+    const updated = await put<{ success: boolean; data: EventTable }>(`/api/tables/${editingTable.value.id}`, { ...editTableForm })
+    Object.assign(editingTable.value, updated.data)
+    if (selectedTable.value?.id === editingTable.value.id) {
+      Object.assign(selectedTable.value, updated.data)
+    }
+    emit('tableUpdated', updated.data)
+    ui.success('Mesa actualizada', editTableForm.name)
+    showEditTableModal.value = false
+  } catch {
+    ui.error('Error', 'No se pudo actualizar la mesa')
+  } finally {
+    editTableLoading.value = false
+  }
 }
 
 function rsvpLabel(status: string) {

@@ -14,16 +14,19 @@
       </NuxtLink>
     </div>
 
-    
+
     <div class="flex flex-wrap items-center gap-3 mb-6">
       <div class="flex items-center gap-1 glass rounded-xl p-1">
         <button
           v-for="filter in statusFilters"
           :key="filter.value"
-          :class="['px-3 py-1.5 rounded-lg text-sm font-medium transition-all', activeFilter === filter.value ? 'bg-revel-gold text-revel-black' : 'text-white/50 hover:text-white']"
+          :class="['px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5', activeFilter === filter.value ? 'bg-revel-gold text-revel-black' : 'text-white/50 hover:text-white']"
           @click="setFilter(filter.value)"
         >
           {{ filter.label }}
+          <span v-if="filter.count > 0" :class="['text-[10px] font-bold px-1.5 py-0.5 rounded-full', activeFilter === filter.value ? 'bg-revel-black/20' : 'bg-white/10']">
+            {{ filter.count }}
+          </span>
         </button>
       </div>
 
@@ -42,7 +45,17 @@
       </div>
     </div>
 
-    
+    <!-- Aviso de archivados -->
+    <div v-if="activeFilter === 'FINISHED'" class="flex items-center gap-3 p-4 rounded-xl border border-white/8 bg-white/3 mb-6">
+      <svg class="w-5 h-5 text-white/30 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+      </svg>
+      <p class="text-sm text-white/45">
+        Eventos archivados — registro histórico de eventos que ya pasaron. Se archivan automáticamente al día siguiente de su fecha.
+      </p>
+    </div>
+
+
     <div v-if="loading" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
       <div v-for="i in 6" :key="i" class="h-52 shimmer rounded-2xl" />
     </div>
@@ -51,37 +64,45 @@
       <div
         v-for="event in filteredEvents"
         :key="event.id"
-        class="card-revel overflow-hidden cursor-pointer group"
+        :class="['card-revel overflow-hidden cursor-pointer group', event.status === 'FINISHED' ? 'opacity-70 hover:opacity-100' : '']"
         @click="$router.push(`/dashboard/events/${event.id}`)"
       >
-        
+
         <div class="h-36 relative overflow-hidden">
           <img
             v-if="event.coverImage"
             :src="event.coverImage"
             :alt="event.name"
-            class="w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500"
+            :class="['w-full h-full object-cover transition-all duration-500', event.status === 'FINISHED' ? 'grayscale group-hover:grayscale-0 opacity-60 group-hover:opacity-90' : 'opacity-70 group-hover:opacity-90 group-hover:scale-105']"
           />
           <div v-else class="w-full h-full relative overflow-hidden">
             <img
               :src="eventConfig(event.type).image"
               :alt="eventConfig(event.type).label"
-              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              :class="['w-full h-full object-cover transition-transform duration-500 group-hover:scale-105', event.status === 'FINISHED' ? 'grayscale group-hover:grayscale-0' : '']"
             />
-            
             <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
             <span class="absolute bottom-2 left-3 text-[10px] font-semibold uppercase tracking-widest text-white/80">{{ eventConfig(event.type).label }}</span>
           </div>
 
-          
+          <!-- Badge de estado -->
           <div class="absolute top-3 right-3">
             <UiBadge :variant="statusVariant(event.status)" dot>
               {{ statusLabel(event.status) }}
             </UiBadge>
           </div>
+
+          <!-- Icono de archivo para eventos finalizados -->
+          <div v-if="event.status === 'FINISHED'" class="absolute top-3 left-3">
+            <div class="w-6 h-6 rounded-lg bg-black/50 backdrop-blur-sm flex items-center justify-center">
+              <svg class="w-3.5 h-3.5 text-white/60" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+              </svg>
+            </div>
+          </div>
         </div>
 
-        
+
         <div class="p-4">
           <h3 class="font-display text-base font-semibold text-white mb-1 truncate">{{ event.name }}</h3>
           <p class="text-xs text-white/40 mb-3">
@@ -111,15 +132,20 @@
 
     <div v-else class="text-center py-20">
       <div class="w-16 h-16 rounded-2xl bg-revel-gold/10 flex items-center justify-center mx-auto mb-4 text-revel-gold">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <svg v-if="activeFilter === 'FINISHED'" class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+        </svg>
+        <svg v-else class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       </div>
-      <h3 class="font-display text-xl font-semibold text-white mb-2">Sin eventos</h3>
+      <h3 class="font-display text-xl font-semibold text-white mb-2">
+        {{ activeFilter === 'FINISHED' ? 'Sin eventos archivados' : 'Sin eventos activos' }}
+      </h3>
       <p class="text-white/40 text-sm mb-6">
-        {{ activeFilter === 'ALL' ? 'Crea tu primer evento para comenzar.' : `No hay eventos con estado "${activeFilter}".` }}
+        {{ activeFilter === 'FINISHED' ? 'Los eventos pasados aparecerán aquí automáticamente.' : 'Crea tu primer evento para comenzar.' }}
       </p>
-      <NuxtLink v-if="activeFilter === 'ALL'" to="/dashboard/events/create" class="btn-primary">
+      <NuxtLink v-if="activeFilter !== 'FINISHED'" to="/dashboard/events/create" class="btn-primary">
         Crear primer evento
       </NuxtLink>
     </div>
@@ -144,19 +170,21 @@ import { useEventsStore } from '~/stores/events'
 import type { Event } from '~/types'
 
 const eventsStore = useEventsStore()
-const loading = ref(true)
+const loading = ref(eventsStore.events.length === 0)
 const search = ref('')
-const activeFilter = ref('ALL')
+const activeFilter = ref('ACTIVE')
 const showDeleteConfirm = ref(false)
 const eventToDelete = ref<Event | null>(null)
 const deleteLoading = ref(false)
 
-const statusFilters = [
-  { label: 'Todos', value: 'ALL' },
-  { label: 'Activos', value: 'ACTIVE' },
-  { label: 'Borrador', value: 'DRAFT' },
-  { label: 'Finalizados', value: 'FINISHED' },
-]
+const activeCount = computed(() => eventsStore.events.filter(e => e.status === 'ACTIVE').length)
+const archivedCount = computed(() => eventsStore.events.filter(e => e.status === 'FINISHED').length)
+
+const statusFilters = computed(() => [
+  { label: 'Activos', value: 'ACTIVE', count: activeCount.value },
+  { label: 'Todos', value: 'ALL', count: eventsStore.events.length },
+  { label: 'Archivados', value: 'FINISHED', count: archivedCount.value },
+])
 
 const filteredEvents = computed(() =>
   eventsStore.events.filter((e) => {
@@ -189,7 +217,7 @@ function formatDate(date: string) {
 
 function statusLabel(status: string) {
   const map: Record<string, string> = {
-    DRAFT: 'Borrador', ACTIVE: 'Activo', FINISHED: 'Finalizado', CANCELLED: 'Cancelado',
+    DRAFT: 'Borrador', ACTIVE: 'Activo', FINISHED: 'Archivado', CANCELLED: 'Cancelado',
   }
   return map[status] ?? status
 }

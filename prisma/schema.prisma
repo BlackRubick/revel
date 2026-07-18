@@ -161,13 +161,14 @@ model Event {
 }
 
 model EventTable {
-  id       String @id @default(uuid())
-  eventId  String
-  number   Int
-  name     String
-  capacity Int    @default(8)
-  positionX Float @default(0)
-  positionY Float @default(0)
+  id          String @id @default(uuid())
+  eventId     String
+  number      Int
+  name        String
+  capacity    Int    @default(8)
+  shape       String @default("ROUND")
+  positionX   Float  @default(0)
+  positionY   Float  @default(0)
 
   event  Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   guests Guest[]
