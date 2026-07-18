@@ -23,20 +23,23 @@
       <button
         v-for="cat in categories"
         :key="cat.id"
-        class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all"
+        class="px-3.5 py-1.5 rounded-full text-xs font-medium transition-all"
         :class="activeCategory === cat.id
           ? 'bg-revel-gold text-revel-black'
           : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'"
         @click="activeCategory = activeCategory === cat.id ? 'all' : cat.id"
       >
-        <span>{{ cat.emoji }}</span>
         {{ cat.label }}
       </button>
     </div>
 
     <!-- Sin resultados -->
     <div v-if="filteredItems.length === 0" class="text-center py-16">
-      <div class="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-3 text-3xl">🔍</div>
+      <div class="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-3">
+        <svg class="w-6 h-6 text-white/20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+      </div>
       <p class="text-white/50 text-sm">No encontramos preguntas con "<strong class="text-white">{{ search }}</strong>"</p>
       <button class="text-revel-gold text-sm mt-2 hover:underline" @click="search = ''">Limpiar búsqueda</button>
     </div>
@@ -44,10 +47,7 @@
     <!-- Preguntas agrupadas por categoría -->
     <div v-else class="space-y-8">
       <div v-for="cat in visibleCategories" :key="cat.id">
-        <div class="flex items-center gap-2.5 mb-3">
-          <span class="text-xl">{{ cat.emoji }}</span>
-          <h3 class="font-display text-base font-semibold text-white">{{ cat.label }}</h3>
-        </div>
+        <h3 class="font-display text-base font-semibold text-white mb-3">{{ cat.label }}</h3>
 
         <div class="space-y-2">
           <div
@@ -78,7 +78,9 @@
                   <div class="h-px bg-white/6 mb-3" />
                   <div class="text-sm text-white/60 leading-relaxed space-y-2" v-html="item.answer" />
                   <div v-if="item.tip" class="mt-3 flex items-start gap-2 bg-revel-gold/8 border border-revel-gold/20 rounded-lg px-3 py-2.5">
-                    <span class="text-base flex-shrink-0">💡</span>
+                    <svg class="w-3.5 h-3.5 text-revel-gold/70 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
                     <p class="text-xs text-revel-gold/80 leading-relaxed">{{ item.tip }}</p>
                   </div>
                 </div>
@@ -91,7 +93,6 @@
 
     <!-- Footer -->
     <div class="mt-12 card-revel text-center py-8">
-      <p class="text-2xl mb-2">🙋</p>
       <p class="text-white font-medium text-sm mb-1">¿No encontraste lo que buscabas?</p>
       <p class="text-white/40 text-xs">Contacta a tu administrador o escribe al soporte de Rével</p>
     </div>
@@ -114,14 +115,14 @@ function toggle(id: string) {
 }
 
 const categories = [
-  { id: 'all',       emoji: '✨', label: 'Todo' },
-  { id: 'start',     emoji: '🚀', label: 'Primeros pasos' },
-  { id: 'events',    emoji: '🎉', label: 'Eventos' },
-  { id: 'guests',    emoji: '👥', label: 'Invitados' },
-  { id: 'tables',    emoji: '🪑', label: 'Mesas' },
-  { id: 'album',     emoji: '📷', label: 'Álbum de fotos' },
-  { id: 'qr',        emoji: '📲', label: 'Códigos QR' },
-  { id: 'users',     emoji: '🔐', label: 'Usuarios y roles' },
+  { id: 'all',    label: 'Todo' },
+  { id: 'start',  label: 'Primeros pasos' },
+  { id: 'events', label: 'Eventos' },
+  { id: 'guests', label: 'Invitados' },
+  { id: 'tables', label: 'Mesas' },
+  { id: 'album',  label: 'Álbum de fotos' },
+  { id: 'qr',     label: 'Códigos QR' },
+  { id: 'users',  label: 'Usuarios y roles' },
 ]
 
 const faqItems = [
@@ -146,7 +147,7 @@ const faqItems = [
     id: 'events-1',
     category: 'events',
     question: '¿Cómo creo un evento?',
-    answer: 'Haz clic en <strong class="text-white">Eventos</strong> en el menú de la izquierda, luego en el botón <strong class="text-white">"Nuevo evento"</strong> que está arriba a la derecha. Llena el nombre del evento, la fecha, el lugar y elige de qué tipo es (boda, cumpleaños, quinceañera, etc.). Al terminar presiona <strong class="text-white">"Crear evento"</strong> y ¡listo!',
+    answer: 'Haz clic en <strong class="text-white">Eventos</strong> en el menú de la izquierda, luego en el botón <strong class="text-white">"Nuevo evento"</strong> que está arriba a la derecha. Llena el nombre del evento, la fecha, el lugar y elige de qué tipo es (boda, cumpleaños, quinceañera, etc.). Al terminar presiona <strong class="text-white">"Crear evento"</strong> y listo.',
     tip: 'Ponle un nombre claro al evento, por ejemplo "Boda de Ana y Carlos - Junio 2025". Así lo encontrarás fácil después.',
   },
   {
@@ -248,12 +249,6 @@ const faqItems = [
 
   // USUARIOS Y ROLES
   {
-    id: 'users-1',
-    category: 'users',
-    question: '¿Qué puede hacer cada tipo de usuario?',
-    answer: '<strong class="text-white">Administrador:</strong> Tiene acceso completo al sistema. Puede ver y hacer todo.<br><br><strong class="text-white">Encargado:</strong> Gestiona una empresa dentro del sistema. Puede crear y administrar organizadores y sus eventos.<br><br><strong class="text-white">Organizador:</strong> Se encarga de los eventos. Crea eventos, gestiona invitados, mesas y el álbum.<br><br><strong class="text-white">Escáner:</strong> Solo puede escanear los códigos QR de invitados en la entrada del evento.<br><br><strong class="text-white">Pantalla:</strong> Accede a la pantalla del evento que se proyecta en el salón.',
-  },
-  {
     id: 'users-2',
     category: 'users',
     question: '¿Cómo agrego a alguien a mi equipo?',
@@ -264,7 +259,7 @@ const faqItems = [
     id: 'users-3',
     category: 'users',
     question: '¿Puedo darle acceso limitado a alguien?',
-    answer: 'Sí. Al elegir el tipo de usuario puedes controlar exactamente a qué partes del sistema puede entrar:<br><br>Si solo va a registrar entradas el día del evento → dale el rol de <strong class="text-white">Escáner</strong>.<br>Si solo va a ver la pantalla de fotos → dale el rol de <strong class="text-white">Pantalla</strong>.<br>Si va a organizar eventos completos → dale el rol de <strong class="text-white">Organizador</strong>.',
+    answer: 'Sí. Al elegir el tipo de usuario puedes controlar exactamente a qué partes del sistema puede entrar:<br><br>Si solo va a registrar entradas el día del evento, dale el rol de <strong class="text-white">Escáner</strong>.<br>Si solo va a ver la pantalla de fotos, dale el rol de <strong class="text-white">Pantalla</strong>.<br>Si va a organizar eventos completos, dale el rol de <strong class="text-white">Organizador</strong>.',
   },
 ]
 
