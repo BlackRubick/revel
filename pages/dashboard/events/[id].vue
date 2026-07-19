@@ -381,12 +381,12 @@
             <button
               v-for="d in availableDesigns"
               :key="d.id"
+              type="button"
               class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all flex-shrink-0"
               :class="localPreviewTemplateId === d.id ? 'border-revel-gold text-white' : 'border-white/10 text-white/45 hover:border-white/25 hover:text-white/70'"
-              :style="localPreviewTemplateId === d.id ? `background:${d.bg.startsWith('linear') ? 'transparent' : d.bg};border-color:#C9A84C` : ''"
-              @click="localPreviewTemplateId = d.id"
+              @click="selectPreviewDesign(d.id)"
             >
-              <span class="w-3 h-3 rounded-sm flex-shrink-0" :style="`background:${d.accentColor};opacity:0.8`"/>
+              <span class="w-3 h-3 rounded-full flex-shrink-0" :style="`background:${d.accentColor}`"/>
               {{ d.name }}
             </button>
           </div>
@@ -401,7 +401,7 @@
                 <div class="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-1.5 bg-revel-gray-mid rounded-full" />
                 <div class="rounded-[2.5rem] overflow-hidden overflow-y-auto" style="max-height: 780px;">
                   <ClientOnly>
-                    <InvitationCard :template-id="localPreviewTemplateId" :event="event">
+                    <InvitationCard :key="localPreviewTemplateId" :template-id="localPreviewTemplateId" :event="event">
                       <template #actions>
                         <button class="btn-primary w-full text-center justify-center">Confirmar asistencia</button>
                       </template>
@@ -434,7 +434,7 @@
                 </div>
                 <div style="max-height: 700px; overflow-y: auto;">
                   <ClientOnly>
-                    <InvitationCard :template-id="localPreviewTemplateId" :event="event">
+                    <InvitationCard :key="localPreviewTemplateId" :template-id="localPreviewTemplateId" :event="event">
                       <template #actions>
                         <button class="btn-primary w-full text-center justify-center">Confirmar asistencia</button>
                       </template>
@@ -514,8 +514,16 @@ const availableDesigns = computed(() => {
 
 function openPreview() {
   if (!event.value) return
-  localPreviewTemplateId.value = event.value.templateId ?? 'classic'
+  // Si el evento ya tiene un diseño nuevo, usarlo; si no, usar el primero disponible
+  const currentId = event.value.templateId
+  const designs = getDesignsByEventType(event.value.type)
+  const firstDesign = designs[0]?.id ?? 'w1'
+  localPreviewTemplateId.value = currentId ?? firstDesign
   showPreviewModal.value = true
+}
+
+function selectPreviewDesign(id: string) {
+  localPreviewTemplateId.value = id
 }
 
 async function applyPreviewTemplate() {
@@ -524,7 +532,8 @@ async function applyPreviewTemplate() {
   try {
     const updated = await eventsStore.updateEvent(event.value.id, { templateId: localPreviewTemplateId.value })
     event.value = updated
-    ui.success('Diseño aplicado', invitationTemplates.find(t => t.id === localPreviewTemplateId.value)?.label ?? '')
+    const found = availableDesigns.value.find(d => d.id === localPreviewTemplateId.value)
+    ui.success('Diseño aplicado', found?.name ?? localPreviewTemplateId.value)
   } catch {
     ui.error('Error', 'No se pudo guardar el diseño')
   } finally {

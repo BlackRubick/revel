@@ -258,7 +258,7 @@
                 <div class="absolute top-3.5 left-1/2 -translate-x-1/2 w-16 h-1.5 bg-revel-gray-mid rounded-full" />
                 <div class="rounded-[2.2rem] overflow-hidden" style="max-height:78vh;overflow-y:auto">
                   <ClientOnly>
-                    <InvitationCard :template-id="form.templateId" :event="previewEvent">
+                    <InvitationCard :key="form.templateId" :template-id="form.templateId" :event="previewEvent">
                       <template #actions>
                         <div class="py-2 px-1">
                           <div class="w-full rounded-xl py-3 text-center text-sm font-semibold text-revel-black" style="background:linear-gradient(135deg,#C9A84C,#E8D08A)">
@@ -286,7 +286,7 @@
                 </div>
                 <div style="max-height:75vh;overflow-y:auto">
                   <ClientOnly>
-                    <InvitationCard :template-id="form.templateId" :event="previewEvent">
+                    <InvitationCard :key="form.templateId" :template-id="form.templateId" :event="previewEvent">
                       <template #actions>
                         <div class="py-2 px-1">
                           <div class="w-full rounded-xl py-3 text-center text-sm font-semibold text-revel-black" style="background:linear-gradient(135deg,#C9A84C,#E8D08A)">
