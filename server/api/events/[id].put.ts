@@ -19,6 +19,7 @@ const schema = z.object({
   customColor: z.string().optional(),
   churchName: z.string().optional(),
   churchAddress: z.string().optional(),
+  templateId: z.string().optional(),
 })
 
 export default defineEventHandler(async (event) => {

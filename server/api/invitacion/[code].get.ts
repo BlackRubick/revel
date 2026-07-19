@@ -25,6 +25,7 @@ export default defineEventHandler(async (event) => {
               type: true,
               churchName: true,
               churchAddress: true,
+              templateId: true,
             },
           },
           table: { select: { name: true, number: true } },

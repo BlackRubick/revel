@@ -233,6 +233,28 @@
         </div>
       </div>
 
+      <!-- Plantilla de invitación -->
+      <div>
+        <label class="block text-sm font-medium text-white/70 mb-2">Plantilla de invitación</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button
+            v-for="tpl in invitationTemplates"
+            :key="tpl.id"
+            type="button"
+            class="relative rounded-xl overflow-hidden border-2 transition-all h-16 flex flex-col items-center justify-center gap-1 px-2"
+            :class="editForm.templateId === tpl.id ? 'border-revel-gold scale-[1.02]' : 'border-white/10 hover:border-white/25'"
+            :style="`background:${tpl.bg}`"
+            @click="editForm.templateId = tpl.id"
+          >
+            <span class="text-xs font-semibold" :style="`color:${tpl.text}`">{{ tpl.label }}</span>
+            <span class="text-[9px] opacity-50" :style="`color:${tpl.accent}`">{{ tpl.desc }}</span>
+            <div v-if="editForm.templateId === tpl.id" class="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-revel-gold flex items-center justify-center">
+              <svg class="w-2 h-2 text-black" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            </div>
+          </button>
+        </div>
+      </div>
+
       <!-- Fila 1: nombre + estado -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="sm:col-span-2">
@@ -350,7 +372,11 @@
               <div class="relative bg-revel-gray-dark rounded-[3rem] p-[10px] shadow-2xl border border-white/15 ring-1 ring-white/5">
                 <div class="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-1.5 bg-revel-gray-mid rounded-full" />
                 <div class="rounded-[2.5rem] overflow-hidden overflow-y-auto" style="max-height: 780px;">
-                  <DashboardInvitationPreview :event="event" />
+                  <InvitationInvitationCard :template-id="event.templateId" :event="event">
+                    <template #actions>
+                      <button class="btn-primary w-full text-center justify-center">Confirmar asistencia</button>
+                    </template>
+                  </InvitationInvitationCard>
                 </div>
               </div>
               <p class="text-center text-xs text-white/20 mt-4">390 × 844 px · iPhone 14</p>
@@ -377,7 +403,11 @@
                   </div>
                 </div>
                 <div style="max-height: 700px; overflow-y: auto;">
-                  <DashboardInvitationPreview :event="event" />
+                  <InvitationInvitationCard :template-id="event.templateId" :event="event">
+                    <template #actions>
+                      <button class="btn-primary w-full text-center justify-center">Confirmar asistencia</button>
+                    </template>
+                  </InvitationInvitationCard>
                 </div>
               </div>
               <p class="text-center text-xs text-white/20 mt-3">Vista escritorio · 1280 px</p>
@@ -438,7 +468,17 @@ const editForm = reactive({
   giftListUrl: '',
   coverImage: '',
   status: 'ACTIVE',
+  templateId: 'classic',
 })
+
+const invitationTemplates = [
+  { id: 'classic',     label: 'Clásico',      desc: 'Todos',         bg: '#0A0A0A', accent: '#C9A84C', text: '#fff' },
+  { id: 'elegante',    label: 'Elegante',     desc: 'Bodas',         bg: '#F5F0E8', accent: '#B8953F', text: '#1C1C2E' },
+  { id: 'fiesta',      label: 'Fiesta',       desc: 'Cumpleaños',    bg: '#2D0E5A', accent: '#FFD700', text: '#fff' },
+  { id: 'romantico',   label: 'Romántico',    desc: 'Quinceañera',   bg: '#5A1030', accent: '#E8A4B8', text: '#fff' },
+  { id: 'minimalista', label: 'Minimalista',  desc: 'Corporativo',   bg: '#0D0D0D', accent: '#C9A84C', text: '#fff' },
+  { id: 'esmeralda',   label: 'Esmeralda',    desc: 'Graduación',    bg: '#0A2618', accent: '#4CAF50', text: '#fff' },
+]
 
 function openEdit() {
   if (!event.value) return
@@ -458,6 +498,7 @@ function openEdit() {
     giftListUrl: event.value.giftListUrl ?? '',
     coverImage: event.value.coverImage ?? '',
     status: event.value.status,
+    templateId: event.value.templateId ?? 'classic',
   })
   showEditModal.value = true
 }

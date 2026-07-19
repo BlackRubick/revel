@@ -70,6 +70,7 @@ export interface Event {
   customColor?: string
   churchName?: string
   churchAddress?: string
+  templateId?: string
   createdAt: string
   updatedAt: string
   package?: Package
