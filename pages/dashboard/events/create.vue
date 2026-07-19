@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-6xl mx-auto">
+  <div class="max-w-5xl mx-auto">
 
     <!-- Header -->
     <div class="flex items-center gap-4 mb-8">
@@ -14,7 +14,7 @@
       </div>
     </div>
 
-    <div class="lg:grid lg:grid-cols-[1fr_340px] lg:gap-8 lg:items-start">
+    <div class="xl:grid xl:grid-cols-[1fr_310px] xl:gap-8 xl:items-start">
 
       <!-- COLUMNA IZQUIERDA: formulario -->
       <form class="space-y-6" @submit.prevent="handleSubmit">
@@ -29,13 +29,13 @@
           <div
             class="relative rounded-xl overflow-hidden border-2 border-dashed transition-all cursor-pointer"
             :class="form.coverImage ? 'border-revel-gold/40' : 'border-white/15 hover:border-revel-gold/30'"
-            style="min-height:180px"
+            style="min-height:160px"
             @click="triggerFileInput"
             @dragover.prevent
             @drop.prevent="onDrop"
           >
-            <img v-if="form.coverImage" :src="form.coverImage" class="w-full object-cover" style="max-height:240px" />
-            <div v-else class="flex flex-col items-center justify-center gap-3 py-12 text-center px-6">
+            <img v-if="form.coverImage" :src="form.coverImage" class="w-full object-cover" style="max-height:220px" />
+            <div v-else class="flex flex-col items-center justify-center gap-3 py-10 text-center px-6">
               <div class="w-12 h-12 rounded-2xl bg-revel-gold/8 border border-revel-gold/20 flex items-center justify-center">
                 <svg class="w-5 h-5 text-revel-gold/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
               </div>
@@ -51,13 +51,13 @@
           <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFileChange" />
         </div>
 
-        <!-- 2. Plantilla de invitación -->
+        <!-- 2. Diseño de invitación -->
         <div class="card-revel p-6">
           <h3 class="font-display text-base font-semibold text-white mb-2 flex items-center gap-2">
             <span class="w-6 h-6 rounded-full bg-revel-gold text-revel-black text-xs font-bold inline-flex items-center justify-center shrink-0">2</span>
             Diseño de la invitación
           </h3>
-          <p class="text-white/40 text-xs mb-4 ml-8">Elige cómo se verá la invitación que recibirán tus invitados</p>
+          <p class="text-white/40 text-xs mb-4 ml-8">Elige cómo verán la invitación tus invitados</p>
           <div class="grid grid-cols-3 gap-2">
             <button
               v-for="tpl in invitationTemplates"
@@ -75,9 +75,8 @@
               </div>
             </button>
           </div>
-
-          <!-- Preview en móvil: botón para ver preview -->
-          <button type="button" class="lg:hidden mt-4 w-full btn-secondary text-sm py-2.5 flex items-center justify-center gap-2" @click="showMobilePreview = true">
+          <!-- Botón preview solo visible si el panel derecho no está visible (< xl) -->
+          <button type="button" class="xl:hidden mt-4 w-full btn-secondary text-sm py-2.5 flex items-center justify-center gap-2" @click="showMobilePreview = true">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             Ver cómo quedará la invitación
           </button>
@@ -92,8 +91,12 @@
           <div class="space-y-4">
             <UiInput v-model="form.name" label="Nombre del evento" placeholder="Boda García & Martínez" required :error="errors.name" />
             <div class="grid grid-cols-2 gap-4">
-              <UiSelect v-model="form.type" label="Tipo de evento" placeholder="Seleccionar tipo" :options="eventTypes" required />
-              <UiSelect v-model="form.packageId" label="Paquete" placeholder="Seleccionar paquete" :options="packageOptions" required />
+              <div>
+                <UiSelect v-model="form.type" label="Tipo de evento" placeholder="Seleccionar tipo" :options="eventTypes" required :error="errors.type" />
+              </div>
+              <div>
+                <UiSelect v-model="form.packageId" label="Paquete" placeholder="Seleccionar paquete" :options="packageOptions" required :error="errors.packageId" />
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-white/70 mb-1.5">Descripción</label>
@@ -113,7 +116,7 @@
               <UiInput v-model="form.date" label="Fecha" type="date" required :error="errors.date" />
               <UiInput v-model="form.time" label="Hora" type="time" required />
             </div>
-            <UiInput v-model="form.venue" label="Nombre del lugar" placeholder="Hacienda Las Palmas" required />
+            <UiInput v-model="form.venue" label="Nombre del lugar" placeholder="Hacienda Las Palmas" required :error="errors.venue" />
             <UiInput v-model="form.venueAddress" label="Dirección completa" placeholder="Av. Principal 123, CDMX" />
             <UiInput v-model="form.venueMapUrl" label="URL de Google Maps" placeholder="https://maps.google.com/..." />
           </div>
@@ -142,34 +145,29 @@
           </div>
         </div>
 
-        <!-- 6. Opciones adicionales -->
+        <!-- 6. Adicionales -->
         <div class="card-revel p-6">
           <h3 class="font-display text-base font-semibold text-white mb-5 flex items-center gap-2">
             <span class="w-6 h-6 rounded-full bg-revel-gold/30 text-revel-gold text-xs font-bold inline-flex items-center justify-center shrink-0">6</span>
             Opciones adicionales
           </h3>
           <UiInput v-model="form.giftListUrl" label="URL de mesa de regalos" placeholder="https://..." />
-        </div>
 
-        <!-- 7. Iglesia -->
-        <div v-if="showsChurch" class="card-revel p-6">
-          <h3 class="font-display text-base font-semibold text-white mb-5 flex items-center gap-2">
-            <span class="w-6 h-6 rounded-full bg-revel-gold/30 text-revel-gold text-xs font-bold inline-flex items-center justify-center shrink-0">7</span>
-            Ceremonia religiosa
-          </h3>
-          <label class="flex items-center gap-3 cursor-pointer mb-4 select-none">
-            <div
-              class="w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0"
-              :class="form.hasChurch ? 'bg-revel-gold border-revel-gold' : 'border-white/25 bg-white/5'"
-              @click="form.hasChurch = !form.hasChurch"
-            >
-              <svg v-if="form.hasChurch" class="w-3 h-3 text-revel-black" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          <div class="mt-4">
+            <label class="flex items-center gap-3 cursor-pointer select-none">
+              <div
+                class="w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all flex-shrink-0"
+                :class="form.hasChurch ? 'bg-revel-gold border-revel-gold' : 'border-white/25 bg-white/5'"
+                @click="form.hasChurch = !form.hasChurch"
+              >
+                <svg v-if="form.hasChurch" class="w-3 h-3 text-revel-black" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <span class="text-white/80 text-sm">El evento incluye ceremonia en iglesia</span>
+            </label>
+            <div v-if="form.hasChurch" class="space-y-4 mt-4">
+              <UiInput v-model="form.churchName" label="Nombre de la iglesia" placeholder="Parroquia de San Juan Bautista" />
+              <UiInput v-model="form.churchAddress" label="Dirección de la iglesia" placeholder="Calle Principal 123" />
             </div>
-            <span class="text-white/80 text-sm">El evento incluye ceremonia en iglesia</span>
-          </label>
-          <div v-if="form.hasChurch" class="space-y-4 mt-2">
-            <UiInput v-model="form.churchName" label="Nombre de la iglesia" placeholder="Parroquia de San Juan Bautista" />
-            <UiInput v-model="form.churchAddress" label="Dirección de la iglesia" placeholder="Calle Principal 123, Colonia Centro" />
           </div>
         </div>
 
@@ -179,70 +177,85 @@
         </div>
       </form>
 
-      <!-- COLUMNA DERECHA: preview en vivo (solo desktop) -->
-      <div class="hidden lg:block">
-        <div class="sticky top-20">
+      <!-- COLUMNA DERECHA: preview en vivo (solo xl+) -->
+      <div class="hidden xl:block">
+        <div class="sticky top-6">
           <div class="flex items-center justify-between mb-3">
             <p class="text-sm font-semibold text-white">Vista previa en vivo</p>
             <div class="flex items-center gap-1 glass rounded-lg p-0.5">
               <button
-                :class="['px-2.5 py-1 rounded-md text-xs font-medium transition-all', previewMode === 'mobile' ? 'bg-revel-gold text-revel-black' : 'text-white/50 hover:text-white']"
+                :class="['px-2.5 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1', previewMode === 'mobile' ? 'bg-revel-gold text-revel-black' : 'text-white/50 hover:text-white']"
                 @click="previewMode = 'mobile'"
               >
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3"/></svg>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3"/></svg>
+                Móvil
               </button>
               <button
-                :class="['px-2.5 py-1 rounded-md text-xs font-medium transition-all', previewMode === 'desktop' ? 'bg-revel-gold text-revel-black' : 'text-white/50 hover:text-white']"
+                :class="['px-2.5 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1', previewMode === 'desktop' ? 'bg-revel-gold text-revel-black' : 'text-white/50 hover:text-white']"
                 @click="previewMode = 'desktop'"
               >
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0H3"/></svg>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0H3"/></svg>
+                Desktop
               </button>
             </div>
           </div>
 
           <!-- Mockup teléfono -->
-          <div v-if="previewMode === 'mobile'" class="relative bg-revel-gray-dark rounded-[2.5rem] p-2 shadow-2xl border border-white/15">
-            <div class="absolute top-3 left-1/2 -translate-x-1/2 w-14 h-1 bg-revel-gray-mid rounded-full z-10" />
-            <div class="rounded-[2rem] overflow-hidden overflow-y-auto" style="max-height:600px">
-              <InvitationInvitationCard :template-id="form.templateId" :event="previewEvent">
-                <template #actions>
-                  <div class="py-2 px-1">
-                    <div class="w-full rounded-xl py-3 text-center text-sm font-semibold text-revel-black" style="background:linear-gradient(135deg,#C9A84C,#E8D08A)">Confirmar asistencia</div>
+          <div v-if="previewMode === 'mobile'" class="relative bg-revel-gray-dark rounded-[2rem] p-2 shadow-2xl border border-white/15">
+            <div class="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1 bg-revel-gray-mid rounded-full z-10" />
+            <div class="rounded-[1.6rem] overflow-hidden" style="max-height:560px;overflow-y:auto">
+              <ClientOnly>
+                <InvitationInvitationCard :template-id="form.templateId" :event="previewEvent">
+                  <template #actions>
+                    <div class="py-2 px-1">
+                      <div class="w-full rounded-xl py-3 text-center text-sm font-semibold text-revel-black" style="background:linear-gradient(135deg,#C9A84C,#E8D08A)">Confirmar asistencia</div>
+                    </div>
+                  </template>
+                </InvitationInvitationCard>
+                <template #fallback>
+                  <div class="h-80 flex items-center justify-center bg-revel-black">
+                    <div class="w-6 h-6 border-2 border-revel-gold/40 border-t-revel-gold rounded-full animate-spin" />
                   </div>
                 </template>
-              </InvitationInvitationCard>
+              </ClientOnly>
             </div>
           </div>
 
           <!-- Mockup desktop -->
           <div v-else class="rounded-xl overflow-hidden border border-white/10 shadow-xl bg-revel-gray-dark">
             <div class="flex items-center gap-1.5 px-3 py-2 border-b border-white/8 bg-revel-gray-mid/50">
-              <div class="w-2.5 h-2.5 rounded-full bg-red-500/50" />
-              <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/50" />
-              <div class="w-2.5 h-2.5 rounded-full bg-green-500/50" />
+              <div class="w-2 h-2 rounded-full bg-red-500/50" />
+              <div class="w-2 h-2 rounded-full bg-yellow-500/50" />
+              <div class="w-2 h-2 rounded-full bg-green-500/50" />
               <div class="flex-1 mx-2 bg-revel-gray-dark/80 rounded px-2 py-0.5 text-[10px] text-white/25 text-center">revel-eventos.com/invitacion/...</div>
             </div>
-            <div class="overflow-y-auto" style="max-height:520px">
-              <InvitationInvitationCard :template-id="form.templateId" :event="previewEvent">
-                <template #actions>
-                  <div class="py-2 px-1">
-                    <div class="w-full rounded-xl py-3 text-center text-sm font-semibold text-revel-black" style="background:linear-gradient(135deg,#C9A84C,#E8D08A)">Confirmar asistencia</div>
+            <div style="max-height:500px;overflow-y:auto">
+              <ClientOnly>
+                <InvitationInvitationCard :template-id="form.templateId" :event="previewEvent">
+                  <template #actions>
+                    <div class="py-2 px-1">
+                      <div class="w-full rounded-xl py-3 text-center text-sm font-semibold text-revel-black" style="background:linear-gradient(135deg,#C9A84C,#E8D08A)">Confirmar asistencia</div>
+                    </div>
+                  </template>
+                </InvitationInvitationCard>
+                <template #fallback>
+                  <div class="h-80 flex items-center justify-center bg-revel-black">
+                    <div class="w-6 h-6 border-2 border-revel-gold/40 border-t-revel-gold rounded-full animate-spin" />
                   </div>
                 </template>
-              </InvitationInvitationCard>
+              </ClientOnly>
             </div>
           </div>
-
-          <p class="text-center text-xs text-white/20 mt-2">Los datos se actualizan en tiempo real</p>
+          <p class="text-center text-xs text-white/20 mt-2">Se actualiza conforme escribes</p>
         </div>
       </div>
 
     </div>
 
-    <!-- Modal preview móvil -->
+    <!-- Modal preview fullscreen (móvil / pantallas medianas) -->
     <Teleport to="body">
       <Transition name="modal">
-        <div v-if="showMobilePreview" class="fixed inset-0 z-50 flex flex-col bg-revel-black lg:hidden">
+        <div v-if="showMobilePreview" class="fixed inset-0 z-50 flex flex-col bg-revel-black xl:hidden">
           <div class="flex items-center justify-between px-4 py-3 border-b border-white/8 flex-shrink-0">
             <p class="text-sm font-semibold text-white">Vista previa de la invitación</p>
             <button class="w-8 h-8 flex items-center justify-center rounded-lg text-white/50 hover:text-white" @click="showMobilePreview = false">
@@ -250,13 +263,15 @@
             </button>
           </div>
           <div class="flex-1 overflow-y-auto">
-            <InvitationInvitationCard :template-id="form.templateId" :event="previewEvent">
-              <template #actions>
-                <div class="py-2 px-1">
-                  <div class="w-full rounded-xl py-3 text-center text-sm font-semibold text-revel-black" style="background:linear-gradient(135deg,#C9A84C,#E8D08A)">Confirmar asistencia</div>
-                </div>
-              </template>
-            </InvitationInvitationCard>
+            <ClientOnly>
+              <InvitationInvitationCard :template-id="form.templateId" :event="previewEvent">
+                <template #actions>
+                  <div class="py-2 px-1">
+                    <div class="w-full rounded-xl py-3 text-center text-sm font-semibold text-revel-black" style="background:linear-gradient(135deg,#C9A84C,#E8D08A)">Confirmar asistencia</div>
+                  </div>
+                </template>
+              </InvitationInvitationCard>
+            </ClientOnly>
           </div>
         </div>
       </Transition>
@@ -313,28 +328,57 @@ const invitationTemplates = [
 ]
 
 const previewEvent = computed(() => ({
-  name: form.name || 'Nombre del evento',
-  date: form.date || new Date().toISOString().slice(0, 10),
-  time: form.time || '18:00',
-  venue: form.venue || 'Nombre del lugar',
+  name:         form.name        || 'Nombre del evento',
+  date:         form.date        || '2026-07-18',
+  time:         form.time        || '18:00',
+  venue:        form.venue       || 'Nombre del lugar',
   venueAddress: form.venueAddress || null,
-  venueMapUrl: form.venueMapUrl || null,
-  coverImage: form.coverImage || null,
-  type: form.type || 'other',
-  churchName: form.hasChurch && form.churchName ? form.churchName : null,
-  churchAddress: form.hasChurch && form.churchAddress ? form.churchAddress : null,
+  venueMapUrl:  form.venueMapUrl  || null,
+  coverImage:   form.coverImage   || null,
+  type:         form.type         || 'other',
+  churchName:   form.hasChurch && form.churchName  ? form.churchName  : null,
+  churchAddress:form.hasChurch && form.churchAddress? form.churchAddress: null,
 }))
 
-const CHURCH_TYPES = ['wedding', 'quinceañera', 'bautizo']
-const showsChurch = computed(() => CHURCH_TYPES.includes(form.type))
+const eventTypes = [
+  { label: 'Boda',              value: 'wedding' },
+  { label: 'Quinceañera (XV)', value: 'quinceañera' },
+  { label: 'Bautizo',           value: 'bautizo' },
+  { label: 'Cumpleaños',        value: 'birthday' },
+  { label: 'Baby Shower',       value: 'baby_shower' },
+  { label: 'Graduación',        value: 'graduation' },
+  { label: 'Corporativo',       value: 'corporate' },
+  { label: 'Otro',              value: 'other' },
+]
+
+const packageOptions = computed(() =>
+  packages.value.map((p) => ({ label: p.name, value: p.id }))
+)
+
+const errors = reactive({
+  name: '',
+  type: '',
+  packageId: '',
+  date: '',
+  venue: '',
+})
+
+function validate() {
+  errors.name      = form.name.trim().length >= 3  ? '' : 'Mínimo 3 caracteres'
+  errors.type      = form.type                      ? '' : 'Selecciona el tipo de evento'
+  errors.packageId = form.packageId                 ? '' : 'Selecciona un paquete'
+  errors.date      = form.date                      ? '' : 'La fecha es requerida'
+  errors.venue     = form.venue.trim().length >= 2  ? '' : 'Escribe el nombre del lugar'
+  return !Object.values(errors).some(Boolean)
+}
 
 function triggerFileInput() { fileInput.value?.click() }
 
 async function uploadCover(file: File) {
   uploadingCover.value = true
   try {
-    const reader = new FileReader()
     const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
       reader.onload = () => resolve(reader.result as string)
       reader.onerror = reject
       reader.readAsDataURL(file)
@@ -358,47 +402,48 @@ function onDrop(e: DragEvent) {
   if (file && file.type.startsWith('image/')) uploadCover(file)
 }
 
-const errors = reactive({ name: '', date: '' })
-
-const eventTypes = [
-  { label: 'Boda', value: 'wedding' },
-  { label: 'Quinceañera (XV años)', value: 'quinceañera' },
-  { label: 'Bautizo', value: 'bautizo' },
-  { label: 'Cumpleaños', value: 'birthday' },
-  { label: 'Baby Shower', value: 'baby_shower' },
-  { label: 'Graduación', value: 'graduation' },
-  { label: 'Corporativo', value: 'corporate' },
-  { label: 'Otro', value: 'other' },
-]
-
-const packageOptions = computed(() => packages.value.map((p) => ({ label: p.name, value: p.id })))
-
 async function handleSubmit() {
-  errors.name = form.name ? '' : 'El nombre es requerido'
-  errors.date = form.date ? '' : 'La fecha es requerida'
-  if (errors.name || errors.date) return
+  if (!validate()) return
 
   loading.value = true
   try {
     const payload = {
-      ...form,
-      churchName: form.hasChurch ? form.churchName : undefined,
-      churchAddress: form.hasChurch ? form.churchAddress : undefined,
+      name:         form.name,
+      description:  form.description,
+      coverImage:   form.coverImage,
+      type:         form.type,
+      packageId:    form.packageId,
+      date:         form.date,
+      time:         form.time,
+      venue:        form.venue,
+      venueAddress: form.venueAddress || undefined,
+      venueMapUrl:  form.venueMapUrl  || undefined,
+      tableCount:   form.tableCount,
+      tableCapacity:form.tableCapacity,
+      giftListUrl:  form.giftListUrl  || undefined,
+      churchName:   form.hasChurch ? form.churchName  : undefined,
+      churchAddress:form.hasChurch ? form.churchAddress: undefined,
+      templateId:   form.templateId,
     }
     const event = await eventsStore.createEvent(payload)
     ui.success('Evento creado', `"${event.name}" fue creado exitosamente`)
     await router.push(`/dashboard/events/${event.id}`)
   } catch (e: unknown) {
-    ui.error('Error al crear', (e as Error).message)
+    const msg = (e as { data?: { message?: string } })?.data?.message ?? (e as Error).message ?? 'Error al crear'
+    ui.error('Error', msg)
   } finally {
     loading.value = false
   }
 }
 
 onMounted(async () => {
-  const res = await get<{ data: typeof packages.value }>('/api/packages')
-  packages.value = res.data
-  if (packages.value.length) form.packageId = packages.value[0]!.id
+  try {
+    const res = await get<{ data: typeof packages.value }>('/api/packages')
+    packages.value = res.data ?? []
+    if (packages.value.length) form.packageId = packages.value[0]!.id
+  } catch {
+    // packages se quedan vacíos; el usuario puede seleccionarlo manualmente
+  }
 })
 </script>
 

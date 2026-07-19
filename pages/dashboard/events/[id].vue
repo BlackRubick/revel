@@ -400,11 +400,13 @@
               <div class="relative bg-revel-gray-dark rounded-[3rem] p-[10px] shadow-2xl border border-white/15 ring-1 ring-white/5">
                 <div class="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-1.5 bg-revel-gray-mid rounded-full" />
                 <div class="rounded-[2.5rem] overflow-hidden overflow-y-auto" style="max-height: 780px;">
-                  <InvitationInvitationCard :template-id="localPreviewTemplateId" :event="event">
-                    <template #actions>
-                      <button class="btn-primary w-full text-center justify-center">Confirmar asistencia</button>
-                    </template>
-                  </InvitationInvitationCard>
+                  <ClientOnly>
+                    <InvitationInvitationCard :template-id="localPreviewTemplateId" :event="event">
+                      <template #actions>
+                        <button class="btn-primary w-full text-center justify-center">Confirmar asistencia</button>
+                      </template>
+                    </InvitationInvitationCard>
+                  </ClientOnly>
                 </div>
               </div>
               <p class="text-center text-xs text-white/20 mt-4">390 × 844 px · iPhone 14</p>
@@ -431,11 +433,13 @@
                   </div>
                 </div>
                 <div style="max-height: 700px; overflow-y: auto;">
-                  <InvitationInvitationCard :template-id="localPreviewTemplateId" :event="event">
-                    <template #actions>
-                      <button class="btn-primary w-full text-center justify-center">Confirmar asistencia</button>
-                    </template>
-                  </InvitationInvitationCard>
+                  <ClientOnly>
+                    <InvitationInvitationCard :template-id="localPreviewTemplateId" :event="event">
+                      <template #actions>
+                        <button class="btn-primary w-full text-center justify-center">Confirmar asistencia</button>
+                      </template>
+                    </InvitationInvitationCard>
+                  </ClientOnly>
                 </div>
               </div>
               <p class="text-center text-xs text-white/20 mt-3">Vista escritorio · 1280 px</p>
