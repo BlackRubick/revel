@@ -6,6 +6,7 @@
     :event="event"
     :guest="guest"
     :code="code"
+    :qr-image="qrImage"
   >
     <template #actions><slot name="actions"/></template>
   </TemplateUniversal>
@@ -17,6 +18,7 @@
     :event="event"
     :guest="guest"
     :code="code"
+    :qr-image="qrImage"
   >
     <template #actions><slot name="actions"/></template>
   </component>
@@ -37,6 +39,7 @@ const props = defineProps<{
   event: { name: string; date: string; time: string; venue: string; venueAddress?: string|null; venueMapUrl?: string|null; coverImage?: string|null; type: string; churchName?: string|null; churchAddress?: string|null }
   guest?: { name: string; companions: number; rsvpStatus: string; table?: { name: string; number: number }|null }
   code?: string
+  qrImage?: string | null
 }>()
 
 const LEGACY: Record<string, Component> = {

@@ -60,8 +60,14 @@
           <div><p class="text-xs" style="color:#C9A84C">Mesa asignada</p><p class="text-sm font-bold" style="color:#F5E6C8">{{ guest.table.name }}</p></div>
         </div>
       </div>
-      <div class="w-full max-w-sm flex flex-col gap-2"><slot name="actions" /></div>
-      <p v-if="code" class="text-xs mt-6" style="color:rgba(201,168,76,0.35)">Código: {{ code }}</p>
+      <div class="w-full max-w-sm flex flex-col gap-2">      <!-- QR -->
+      <div class="w-full max-w-sm flex flex-col items-center gap-2 mb-5">
+        <img v-if="qrImage" :src="qrImage" class="w-36 h-36 rounded-2xl object-contain" style="border:2px solid rgba(201,168,76,0.4);background:#fff;padding:6px" />
+        <div v-else class="w-36 h-36 rounded-2xl flex items-center justify-center" style="border:2px solid rgba(201,168,76,0.3);background:rgba(201,168,76,0.04)"><svg width="100" height="100" viewBox="0 0 100 100" fill="#C9A84C"><rect x="4" y="4" width="28" height="28" rx="3" fill="none" stroke="#C9A84C" stroke-width="3"/><rect x="10" y="10" width="16" height="16" rx="1"/><rect x="68" y="4" width="28" height="28" rx="3" fill="none" stroke="#C9A84C" stroke-width="3"/><rect x="74" y="10" width="16" height="16" rx="1"/><rect x="4" y="68" width="28" height="28" rx="3" fill="none" stroke="#C9A84C" stroke-width="3"/><rect x="10" y="74" width="16" height="16" rx="1"/><rect x="40" y="4" width="4" height="4"/><rect x="48" y="4" width="4" height="4"/><rect x="56" y="4" width="4" height="4"/><rect x="40" y="12" width="4" height="4"/><rect x="56" y="12" width="8" height="4"/><rect x="40" y="20" width="8" height="4"/><rect x="56" y="20" width="4" height="4"/><rect x="40" y="40" width="4" height="4"/><rect x="48" y="36" width="4" height="4"/><rect x="56" y="40" width="4" height="4"/><rect x="40" y="48" width="8" height="4"/><rect x="68" y="36" width="4" height="4"/><rect x="76" y="36" width="8" height="4"/><rect x="68" y="44" width="8" height="4"/><rect x="4" y="40" width="4" height="4"/><rect x="12" y="36" width="8" height="4"/><rect x="4" y="48" width="8" height="4"/><rect x="40" y="68" width="4" height="4"/><rect x="48" y="68" width="8" height="4"/><rect x="44" y="76" width="4" height="4"/><rect x="60" y="76" width="4" height="4"/><rect x="40" y="84" width="8" height="4"/><rect x="40" y="92" width="4" height="4"/></svg></div>
+        <p class="text-xs text-center font-medium" style="color:#C9A84C">Muestra este código en la entrada</p>
+      </div>
+
+<slot name="actions" /></div>
     </div>
   </div>
 </template>
@@ -70,10 +76,11 @@ const props = defineProps<{
   event: { name: string; date: string; time: string; venue: string; venueAddress?: string|null; venueMapUrl?: string|null; coverImage?: string|null; type: string; churchName?: string|null; churchAddress?: string|null }
   guest?: { name: string; companions: number; rsvpStatus: string; table?: { name: string; number: number }|null }
   code?: string
+  qrImage?: string | null
 }>()
 const guestName = computed(() => props.guest?.name ?? 'Nombre del Invitado')
 const companionsText = computed(() => { if (!props.guest) return ''; return props.guest.companions > 0 ? `Válida para ${props.guest.companions + 1} personas` : 'Invitación personal' })
-const TYPE_LABELS: Record<string,string> = { wedding:'Boda', birthday:'Cumpleaños', 'quinceañera':'Quinceañera', corporate:'Evento corporativo', baby_shower:'Baby Shower', graduation:'Graduación', bautizo:'Bautizo', other:'Evento especial' }
+const TYPE_LABELS: Record<string,string> = { wedding:'Nuestra Boda', birthday:'Mi Cumpleaños', 'quinceañera':'Mis XV Años', corporate:'Evento corporativo', baby_shower:'Baby Shower', graduation:'Mi Graduación', bautizo:'Bautizo', other:'Evento especial' }
 const eventTypeLabel = computed(() => TYPE_LABELS[props.event.type] ?? 'Invitación especial')
 function formatDate(d: string) { return new Date(d.slice(0, 10) + 'T12:00:00').toLocaleDateString('es-MX', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) }
 </script>

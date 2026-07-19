@@ -25,6 +25,7 @@
       :event="data.guest.event"
       :guest="data.guest"
       :code="data.code"
+      :qr-image="data.qrImage"
     >
       <template #actions>
         <div v-if="data.guest.rsvpStatus === 'CONFIRMED'" class="text-center py-2">
@@ -56,6 +57,7 @@ const error = ref('')
 
 interface InvitationData {
   code: string
+  qrImage: string | null
   guest: {
     name: string
     companions: number

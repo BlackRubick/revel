@@ -38,5 +38,5 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'Invitación no encontrada' })
   }
 
-  return { success: true, data: { code: qr.code, guest: qr.guest } }
+  return { success: true, data: { code: qr.code, qrImage: qr.qrImage ?? null, guest: qr.guest } }
 })
