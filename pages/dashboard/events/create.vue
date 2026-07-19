@@ -86,19 +86,22 @@
 
         <!-- Si eligió diseño -->
         <div v-else>
-          <div class="grid grid-cols-3 gap-2">
+          <p class="text-xs text-white/35 mb-3">{{ availableDesigns.length }} diseños para {{ form.type ? eventTypes.find(e=>e.value===form.type)?.label : 'el tipo de evento' }}</p>
+          <div class="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1">
             <button
-              v-for="tpl in invitationTemplates"
-              :key="tpl.id"
+              v-for="d in availableDesigns"
+              :key="d.id"
               type="button"
-              class="relative rounded-xl overflow-hidden border-2 transition-all h-20 flex flex-col items-center justify-center gap-1 px-2"
-              :class="form.templateId === tpl.id ? 'border-revel-gold scale-[1.02] shadow-gold' : 'border-white/10 hover:border-white/25'"
-              :style="`background:${tpl.bg}`"
-              @click="form.templateId = tpl.id"
+              class="relative rounded-xl overflow-hidden border-2 transition-all h-16 flex items-center justify-between px-3 gap-2 text-left"
+              :class="form.templateId === d.id ? 'border-revel-gold scale-[1.02]' : 'border-white/10 hover:border-white/25'"
+              :style="`background:${d.bg.includes('gradient') ? d.bg : d.bg}`"
+              @click="form.templateId = d.id"
             >
-              <span class="text-xs font-semibold leading-tight text-center" :style="`color:${tpl.text}`">{{ tpl.label }}</span>
-              <span class="text-[9px] opacity-60 leading-none" :style="`color:${tpl.accent}`">{{ tpl.desc }}</span>
-              <div v-if="form.templateId === tpl.id" class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-revel-gold flex items-center justify-center">
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-semibold truncate" :style="`color:${d.titleColor}`">{{ d.name }}</p>
+                <div class="w-full h-0.5 mt-1 rounded-full" :style="`background:${d.accentColor}`"/>
+              </div>
+              <div v-if="form.templateId === d.id" class="w-4 h-4 rounded-full bg-revel-gold flex items-center justify-center flex-shrink-0">
                 <svg class="w-2.5 h-2.5 text-black" fill="none" stroke="currentColor" stroke-width="3.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
               </div>
             </button>
@@ -319,6 +322,7 @@ definePageMeta({ layout: 'dashboard' })
 
 import { useEventsStore } from '~/stores/events'
 import { useUiStore } from '~/stores/ui'
+import { getDesignsByEventType } from '~/utils/invitationDesigns'
 
 const eventsStore = useEventsStore()
 const ui = useUiStore()
@@ -352,7 +356,7 @@ const form = reactive({
   hasChurch: false,
   churchName: '',
   churchAddress: '',
-  templateId: 'classic',
+  templateId: 'w1',
 })
 
 // Cuando cambia el modo, limpia el dato del otro
@@ -361,14 +365,19 @@ watch(bgMode, (mode) => {
   if (mode === 'template') form.coverImage = ''
 })
 
-const invitationTemplates = [
-  { id: 'classic',     label: 'Clásico',     desc: 'Todos',       bg: '#0A0A0A', accent: '#C9A84C', text: '#fff' },
-  { id: 'elegante',    label: 'Elegante',    desc: 'Bodas',       bg: '#F5F0E8', accent: '#B8953F', text: '#1C1C2E' },
-  { id: 'fiesta',      label: 'Fiesta',      desc: 'Cumpleaños',  bg: '#2D0E5A', accent: '#FFD700', text: '#fff' },
-  { id: 'romantico',   label: 'Romántico',   desc: 'Quinceañera', bg: '#5A1030', accent: '#E8A4B8', text: '#fff' },
-  { id: 'minimalista', label: 'Minimalista', desc: 'Corporativo', bg: '#0D0D0D', accent: '#C9A84C', text: '#fff' },
-  { id: 'esmeralda',   label: 'Esmeralda',   desc: 'Graduación',  bg: '#0A2618', accent: '#4CAF50', text: '#fff' },
-]
+// Cuando cambia el tipo de evento, seleccionar el primer diseño disponible
+watch(() => form.type, (newType) => {
+  if (bgMode.value === 'template' && newType) {
+    const designs = getDesignsByEventType(newType)
+    if (designs.length) form.templateId = designs[0]!.id
+  }
+})
+
+const availableDesigns = computed(() => {
+  const t = form.type || 'wedding'
+  const designs = getDesignsByEventType(t)
+  return designs.length ? designs : getDesignsByEventType('wedding')
+})
 
 const previewEvent = computed(() => ({
   name:          form.name.trim()         || 'Boda García & Martínez',

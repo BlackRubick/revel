@@ -375,19 +375,19 @@
             </div>
           </div>
 
-          <!-- Template switcher row -->
+          <!-- Template switcher: 10 designs for this event type -->
           <div class="flex items-center gap-2 px-6 pb-3 overflow-x-auto no-scrollbar">
             <span class="text-[11px] text-white/30 flex-shrink-0 mr-1">Diseño:</span>
             <button
-              v-for="tpl in invitationTemplates"
-              :key="tpl.id"
+              v-for="d in availableDesigns"
+              :key="d.id"
               class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all flex-shrink-0"
-              :class="localPreviewTemplateId === tpl.id ? 'border-revel-gold text-white' : 'border-white/10 text-white/45 hover:border-white/25 hover:text-white/70'"
-              :style="localPreviewTemplateId === tpl.id ? `background:${tpl.bg}` : ''"
-              @click="localPreviewTemplateId = tpl.id"
+              :class="localPreviewTemplateId === d.id ? 'border-revel-gold text-white' : 'border-white/10 text-white/45 hover:border-white/25 hover:text-white/70'"
+              :style="localPreviewTemplateId === d.id ? `background:${d.bg.startsWith('linear') ? 'transparent' : d.bg};border-color:#C9A84C` : ''"
+              @click="localPreviewTemplateId = d.id"
             >
-              <span class="w-3 h-3 rounded-sm flex-shrink-0" :style="`background:${tpl.bg}; border:1px solid ${tpl.accent}40`" />
-              {{ tpl.label }}
+              <span class="w-3 h-3 rounded-sm flex-shrink-0" :style="`background:${d.accentColor};opacity:0.8`"/>
+              {{ d.name }}
             </button>
           </div>
         </div>
@@ -457,6 +457,7 @@ definePageMeta({ layout: 'dashboard' })
 import { useEventsStore } from '~/stores/events'
 import { useUiStore } from '~/stores/ui'
 import { useEventFeatures, FEATURE_LABELS, FEATURE_MIN_PLAN } from '~/composables/useEventFeatures'
+import { getDesignsByEventType } from '~/utils/invitationDesigns'
 import type { Event } from '~/types'
 
 const route = useRoute()
@@ -505,14 +506,11 @@ const editForm = reactive({
   templateId: 'classic',
 })
 
-const invitationTemplates = [
-  { id: 'classic',     label: 'Clásico',      desc: 'Todos',         bg: '#0A0A0A', accent: '#C9A84C', text: '#fff' },
-  { id: 'elegante',    label: 'Elegante',     desc: 'Bodas',         bg: '#F5F0E8', accent: '#B8953F', text: '#1C1C2E' },
-  { id: 'fiesta',      label: 'Fiesta',       desc: 'Cumpleaños',    bg: '#2D0E5A', accent: '#FFD700', text: '#fff' },
-  { id: 'romantico',   label: 'Romántico',    desc: 'Quinceañera',   bg: '#5A1030', accent: '#E8A4B8', text: '#fff' },
-  { id: 'minimalista', label: 'Minimalista',  desc: 'Corporativo',   bg: '#0D0D0D', accent: '#C9A84C', text: '#fff' },
-  { id: 'esmeralda',   label: 'Esmeralda',    desc: 'Graduación',    bg: '#0A2618', accent: '#4CAF50', text: '#fff' },
-]
+const availableDesigns = computed(() => {
+  if (!event.value) return getDesignsByEventType('wedding')
+  const designs = getDesignsByEventType(event.value.type)
+  return designs.length ? designs : getDesignsByEventType('wedding')
+})
 
 function openPreview() {
   if (!event.value) return
