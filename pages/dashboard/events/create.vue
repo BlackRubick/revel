@@ -254,15 +254,17 @@
               <div class="relative bg-revel-gray-dark rounded-[2.8rem] p-2.5 shadow-2xl border border-white/15">
                 <div class="absolute top-3.5 left-1/2 -translate-x-1/2 w-16 h-1.5 bg-revel-gray-mid rounded-full" />
                 <div class="rounded-[2.2rem] overflow-hidden" style="max-height:78vh;overflow-y:auto">
-                  <InvitationCard :template-id="form.templateId" :event="previewEvent">
-                    <template #actions>
-                      <div class="py-2 px-1">
-                        <div class="w-full rounded-xl py-3 text-center text-sm font-semibold text-revel-black" style="background:linear-gradient(135deg,#C9A84C,#E8D08A)">
-                          Confirmar asistencia
+                  <ClientOnly>
+                    <InvitationCard :template-id="form.templateId" :event="previewEvent">
+                      <template #actions>
+                        <div class="py-2 px-1">
+                          <div class="w-full rounded-xl py-3 text-center text-sm font-semibold text-revel-black" style="background:linear-gradient(135deg,#C9A84C,#E8D08A)">
+                            Confirmar asistencia
+                          </div>
                         </div>
-                      </div>
-                    </template>
-                  </InvitationCard>
+                      </template>
+                    </InvitationCard>
+                  </ClientOnly>
                 </div>
               </div>
               <p class="text-center text-xs text-white/20 mt-3">390 px · iPhone</p>
@@ -280,15 +282,17 @@
                   </div>
                 </div>
                 <div style="max-height:75vh;overflow-y:auto">
-                  <InvitationCard :template-id="form.templateId" :event="previewEvent">
-                    <template #actions>
-                      <div class="py-2 px-1">
-                        <div class="w-full rounded-xl py-3 text-center text-sm font-semibold text-revel-black" style="background:linear-gradient(135deg,#C9A84C,#E8D08A)">
-                          Confirmar asistencia
+                  <ClientOnly>
+                    <InvitationCard :template-id="form.templateId" :event="previewEvent">
+                      <template #actions>
+                        <div class="py-2 px-1">
+                          <div class="w-full rounded-xl py-3 text-center text-sm font-semibold text-revel-black" style="background:linear-gradient(135deg,#C9A84C,#E8D08A)">
+                            Confirmar asistencia
+                          </div>
                         </div>
-                      </div>
-                    </template>
-                  </InvitationCard>
+                      </template>
+                    </InvitationCard>
+                  </ClientOnly>
                 </div>
               </div>
               <p class="text-center text-xs text-white/20 mt-3">Vista escritorio</p>
@@ -367,14 +371,14 @@ const invitationTemplates = [
 ]
 
 const previewEvent = computed(() => ({
-  name:          form.name         || 'Nombre del evento',
-  date:          form.date         || '2026-01-15',
-  time:          form.time         || '18:00',
-  venue:         form.venue        || 'Nombre del lugar',
-  venueAddress:  form.venueAddress || null,
-  venueMapUrl:   form.venueMapUrl  || null,
+  name:          form.name.trim()         || 'Boda García & Martínez',
+  date:          form.date                || '2026-06-21',
+  time:          form.time                || '18:00',
+  venue:         form.venue.trim()        || 'Hacienda Las Palmas',
+  venueAddress:  form.venueAddress.trim() || 'Av. Principal 123, CDMX',
+  venueMapUrl:   form.venueMapUrl         || null,
   coverImage:    bgMode.value === 'photo' ? (form.coverImage || null) : null,
-  type:          form.type         || 'other',
+  type:          form.type                || 'wedding',
   churchName:    form.hasChurch && form.churchName    ? form.churchName    : null,
   churchAddress: form.hasChurch && form.churchAddress ? form.churchAddress : null,
 }))
