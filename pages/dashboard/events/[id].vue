@@ -401,11 +401,11 @@
                 <div class="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-1.5 bg-revel-gray-mid rounded-full" />
                 <div class="rounded-[2.5rem] overflow-hidden overflow-y-auto" style="max-height: 780px;">
                   <ClientOnly>
-                    <InvitationInvitationCard :template-id="localPreviewTemplateId" :event="event">
+                    <InvitationCard :template-id="localPreviewTemplateId" :event="event">
                       <template #actions>
                         <button class="btn-primary w-full text-center justify-center">Confirmar asistencia</button>
                       </template>
-                    </InvitationInvitationCard>
+                    </InvitationCard>
                   </ClientOnly>
                 </div>
               </div>
@@ -434,11 +434,11 @@
                 </div>
                 <div style="max-height: 700px; overflow-y: auto;">
                   <ClientOnly>
-                    <InvitationInvitationCard :template-id="localPreviewTemplateId" :event="event">
+                    <InvitationCard :template-id="localPreviewTemplateId" :event="event">
                       <template #actions>
                         <button class="btn-primary w-full text-center justify-center">Confirmar asistencia</button>
                       </template>
-                    </InvitationInvitationCard>
+                    </InvitationCard>
                   </ClientOnly>
                 </div>
               </div>

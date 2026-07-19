@@ -19,7 +19,7 @@
     </div>
 
     <!-- Invitación con plantilla seleccionada -->
-    <InvitationInvitationCard
+    <InvitationCard
       v-else-if="data"
       :template-id="data.guest.event.templateId"
       :event="data.guest.event"
@@ -41,7 +41,7 @@
           Ver ubicación
         </a>
       </template>
-    </InvitationInvitationCard>
+    </InvitationCard>
   </div>
 </template>
 
