@@ -36,7 +36,7 @@
           </svg>
           <span class="hidden sm:inline">Descargar fotos{{ features.can('download') && (event._count?.photos ?? 0) > 0 ? ` (${event._count?.photos})` : '' }}</span>
         </UiButton>
-        <UiButton variant="secondary" size="sm" @click="showPreviewModal = true">
+        <UiButton variant="secondary" size="sm" @click="openPreview">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -329,39 +329,67 @@
     <Transition name="preview-modal">
       <div v-if="showPreviewModal && event" class="fixed inset-0 z-[60] flex flex-col bg-revel-black">
         <!-- Header -->
-        <div class="flex items-center justify-between px-6 py-3 border-b border-white/8 bg-revel-gray-dark/90 backdrop-blur-sm flex-shrink-0">
-          <div class="flex items-center gap-4">
-            <h2 class="font-display text-base font-semibold text-white">Vista previa de la invitación</h2>
-            <div class="flex items-center gap-1 glass rounded-xl p-1">
-              <button
-                :class="['flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all', previewMode === 'mobile' ? 'bg-revel-gold text-revel-black' : 'text-white/50 hover:text-white']"
-                @click="previewMode = 'mobile'"
+        <div class="border-b border-white/8 bg-revel-gray-dark/90 backdrop-blur-sm flex-shrink-0">
+          <div class="flex items-center justify-between px-6 py-3">
+            <div class="flex items-center gap-4">
+              <h2 class="font-display text-base font-semibold text-white">Vista previa</h2>
+              <div class="flex items-center gap-1 glass rounded-xl p-1">
+                <button
+                  :class="['flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all', previewMode === 'mobile' ? 'bg-revel-gold text-revel-black' : 'text-white/50 hover:text-white']"
+                  @click="previewMode = 'mobile'"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3" />
+                  </svg>
+                  Móvil
+                </button>
+                <button
+                  :class="['flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all', previewMode === 'desktop' ? 'bg-revel-gold text-revel-black' : 'text-white/50 hover:text-white']"
+                  @click="previewMode = 'desktop'"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0H3" />
+                  </svg>
+                  Escritorio
+                </button>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <!-- Botón aplicar: solo si cambiaron el template -->
+              <UiButton
+                v-if="localPreviewTemplateId !== (event.templateId ?? 'classic')"
+                size="sm"
+                :loading="savingTemplate"
+                @click="applyPreviewTemplate"
               >
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3" />
-                </svg>
-                Móvil
-              </button>
+                Aplicar este diseño
+              </UiButton>
               <button
-                :class="['flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all', previewMode === 'desktop' ? 'bg-revel-gold text-revel-black' : 'text-white/50 hover:text-white']"
-                @click="previewMode = 'desktop'"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/5 transition-all"
+                @click="showPreviewModal = false"
               >
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0H3" />
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                Escritorio
               </button>
             </div>
-            <p class="text-xs text-white/30 hidden sm:block">Los datos del invitado son de ejemplo</p>
           </div>
-          <button
-            class="w-8 h-8 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/5 transition-all"
-            @click="showPreviewModal = false"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+
+          <!-- Template switcher row -->
+          <div class="flex items-center gap-2 px-6 pb-3 overflow-x-auto no-scrollbar">
+            <span class="text-[11px] text-white/30 flex-shrink-0 mr-1">Diseño:</span>
+            <button
+              v-for="tpl in invitationTemplates"
+              :key="tpl.id"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all flex-shrink-0"
+              :class="localPreviewTemplateId === tpl.id ? 'border-revel-gold text-white' : 'border-white/10 text-white/45 hover:border-white/25 hover:text-white/70'"
+              :style="localPreviewTemplateId === tpl.id ? `background:${tpl.bg}` : ''"
+              @click="localPreviewTemplateId = tpl.id"
+            >
+              <span class="w-3 h-3 rounded-sm flex-shrink-0" :style="`background:${tpl.bg}; border:1px solid ${tpl.accent}40`" />
+              {{ tpl.label }}
+            </button>
+          </div>
         </div>
 
         <!-- Preview area -->
@@ -372,7 +400,7 @@
               <div class="relative bg-revel-gray-dark rounded-[3rem] p-[10px] shadow-2xl border border-white/15 ring-1 ring-white/5">
                 <div class="absolute top-4 left-1/2 -translate-x-1/2 w-20 h-1.5 bg-revel-gray-mid rounded-full" />
                 <div class="rounded-[2.5rem] overflow-hidden overflow-y-auto" style="max-height: 780px;">
-                  <InvitationInvitationCard :template-id="event.templateId" :event="event">
+                  <InvitationInvitationCard :template-id="localPreviewTemplateId" :event="event">
                     <template #actions>
                       <button class="btn-primary w-full text-center justify-center">Confirmar asistencia</button>
                     </template>
@@ -403,7 +431,7 @@
                   </div>
                 </div>
                 <div style="max-height: 700px; overflow-y: auto;">
-                  <InvitationInvitationCard :template-id="event.templateId" :event="event">
+                  <InvitationInvitationCard :template-id="localPreviewTemplateId" :event="event">
                     <template #actions>
                       <button class="btn-primary w-full text-center justify-center">Confirmar asistencia</button>
                     </template>
@@ -437,6 +465,8 @@ const activeTab = ref('overview')
 const showEditModal = ref(false)
 const showPreviewModal = ref(false)
 const previewMode = ref<'mobile' | 'desktop'>('mobile')
+const localPreviewTemplateId = ref('classic')
+const savingTemplate = ref(false)
 const saving = ref(false)
 const downloading = ref(false)
 const uploadingCover = ref(false)
@@ -479,6 +509,26 @@ const invitationTemplates = [
   { id: 'minimalista', label: 'Minimalista',  desc: 'Corporativo',   bg: '#0D0D0D', accent: '#C9A84C', text: '#fff' },
   { id: 'esmeralda',   label: 'Esmeralda',    desc: 'Graduación',    bg: '#0A2618', accent: '#4CAF50', text: '#fff' },
 ]
+
+function openPreview() {
+  if (!event.value) return
+  localPreviewTemplateId.value = event.value.templateId ?? 'classic'
+  showPreviewModal.value = true
+}
+
+async function applyPreviewTemplate() {
+  if (!event.value) return
+  savingTemplate.value = true
+  try {
+    const updated = await eventsStore.updateEvent(event.value.id, { templateId: localPreviewTemplateId.value })
+    event.value = updated
+    ui.success('Diseño aplicado', invitationTemplates.find(t => t.id === localPreviewTemplateId.value)?.label ?? '')
+  } catch {
+    ui.error('Error', 'No se pudo guardar el diseño')
+  } finally {
+    savingTemplate.value = false
+  }
+}
 
 function openEdit() {
   if (!event.value) return
