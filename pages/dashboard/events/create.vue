@@ -223,30 +223,48 @@
         <div v-if="showPreviewModal" class="fixed inset-0 z-50 flex flex-col bg-revel-black">
 
           <!-- Header del modal -->
-          <div class="flex items-center justify-between px-5 py-3 border-b border-white/8 bg-revel-gray-dark flex-shrink-0">
-            <div class="flex items-center gap-3">
-              <h2 class="font-display text-base font-semibold text-white">Vista previa de la invitación</h2>
-              <!-- Toggle móvil / desktop -->
-              <div class="flex items-center gap-0.5 glass rounded-lg p-0.5">
-                <button
-                  :class="['flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all', previewDevice === 'mobile' ? 'bg-revel-gold text-revel-black' : 'text-white/50 hover:text-white']"
-                  @click="previewDevice = 'mobile'"
-                >
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3"/></svg>
-                  Móvil
-                </button>
-                <button
-                  :class="['flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all', previewDevice === 'desktop' ? 'bg-revel-gold text-revel-black' : 'text-white/50 hover:text-white']"
-                  @click="previewDevice = 'desktop'"
-                >
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0H3"/></svg>
-                  Desktop
-                </button>
+          <div class="border-b border-white/8 bg-revel-gray-dark flex-shrink-0">
+            <!-- Fila superior: título + toggles + cerrar -->
+            <div class="flex items-center justify-between px-5 py-3">
+              <div class="flex items-center gap-3">
+                <h2 class="font-display text-base font-semibold text-white">Vista previa</h2>
+                <div class="flex items-center gap-0.5 glass rounded-lg p-0.5">
+                  <button
+                    :class="['flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all', previewDevice === 'mobile' ? 'bg-revel-gold text-revel-black' : 'text-white/50 hover:text-white']"
+                    @click="previewDevice = 'mobile'"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3"/></svg>
+                    Móvil
+                  </button>
+                  <button
+                    :class="['flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all', previewDevice === 'desktop' ? 'bg-revel-gold text-revel-black' : 'text-white/50 hover:text-white']"
+                    @click="previewDevice = 'desktop'"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0H3"/></svg>
+                    Desktop
+                  </button>
+                </div>
               </div>
+              <button class="w-8 h-8 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/5 transition-all" @click="showPreviewModal = false">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
             </div>
-            <button class="w-8 h-8 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/5 transition-all" @click="showPreviewModal = false">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
+
+            <!-- Fila de diseños (solo si bgMode === 'template') -->
+            <div v-if="bgMode === 'template'" class="flex items-center gap-2 px-5 pb-3 overflow-x-auto no-scrollbar">
+              <span class="text-[11px] text-white/30 flex-shrink-0 mr-1">Diseño:</span>
+              <button
+                v-for="d in availableDesigns"
+                :key="d.id"
+                type="button"
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all flex-shrink-0"
+                :class="form.templateId === d.id ? 'border-revel-gold text-white' : 'border-white/10 text-white/45 hover:border-white/25 hover:text-white/70'"
+                @click="form.templateId = d.id"
+              >
+                <span class="w-3 h-3 rounded-full flex-shrink-0" :style="`background:${d.accentColor}`"/>
+                {{ d.name }}
+              </button>
+            </div>
           </div>
 
           <!-- Área del preview -->
