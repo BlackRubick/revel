@@ -721,12 +721,19 @@ async function downloadPhotos() {
   }
 }
 
-onMounted(async () => {
-  const data = await eventsStore.fetchEvent(route.params.id as string)
+async function loadEvent(id: string) {
+  loading.value = true
+  const data = await eventsStore.fetchEvent(id)
   event.value = data
   loading.value = false
   await nextTick()
   await generateQR()
+}
+
+onMounted(() => loadEvent(route.params.id as string))
+
+watch(() => route.params.id, (newId) => {
+  if (newId) loadEvent(newId as string)
 })
 </script>
 
