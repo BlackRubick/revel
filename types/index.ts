@@ -211,11 +211,25 @@ export interface SupplierBooking {
   cost: number
   currency: string
   status: BookingStatus
+  supplierStatus: SupplierStatusValue
   notes?: string
   createdAt: string
   updatedAt: string
   supplier?: Pick<Supplier, 'id' | 'name' | 'category' | 'phone' | 'email'>
   event?: Pick<Event, 'id' | 'name' | 'slug' | 'date' | 'venue' | 'type'> & { status?: EventStatus }
+}
+
+export type SupplierStatusValue = 'PENDING' | 'CONFIRMED' | 'PREPARING' | 'READY' | 'ON_THE_WAY' | 'AT_VENUE'
+
+export interface EventStage {
+  id: string
+  eventId: string
+  title: string
+  description?: string
+  order: number
+  completedAt?: string | null
+  createdAt: string
+  updatedAt: string
 }
 
 export interface ChatMessage {

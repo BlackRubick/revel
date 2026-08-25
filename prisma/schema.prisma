@@ -168,6 +168,7 @@ model Event {
   payments         Payment[]
   qrCodes          QRCode[]
   supplierBookings SupplierBooking[]
+  stages           EventStage[]
 
   @@map("events")
 }
@@ -322,22 +323,38 @@ model Supplier {
 }
 
 model SupplierBooking {
-  id          String        @id @default(uuid())
-  supplierId  String
-  eventId     String
-  eventDate   DateTime
-  cost        Decimal       @db.Decimal(10, 2)
-  currency    String        @default("MXN")
-  status      BookingStatus @default(PENDING)
-  notes       String?       @db.Text
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id             String        @id @default(uuid())
+  supplierId     String
+  eventId        String
+  eventDate      DateTime
+  cost           Decimal       @db.Decimal(10, 2)
+  currency       String        @default("MXN")
+  status         BookingStatus @default(PENDING)
+  supplierStatus String        @default("PENDING")
+  notes          String?       @db.Text
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   supplier     Supplier      @relation(fields: [supplierId], references: [id], onDelete: Cascade)
   event        Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
   chatMessages ChatMessage[]
 
   @@map("supplier_bookings")
+}
+
+model EventStage {
+  id          String    @id @default(uuid())
+  eventId     String
+  title       String
+  description String?   @db.Text
+  order       Int       @default(0)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("event_stages")
 }
 
 model ChatMessage {

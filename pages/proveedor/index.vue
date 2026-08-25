@@ -146,6 +146,23 @@
             </span>
           </div>
 
+          <!-- Mi estado (proveedor) -->
+          <div class="flex-shrink-0">
+            <select
+              :value="b.supplierStatus"
+              class="px-2.5 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-xs focus:outline-none focus:border-revel-gold/40 transition-all cursor-pointer"
+              :class="supplierStatusClass(b.supplierStatus)"
+              @change="updateSupplierStatus(b, ($event.target as HTMLSelectElement).value)"
+            >
+              <option value="PENDING" class="bg-revel-black text-white">Sin confirmar</option>
+              <option value="CONFIRMED" class="bg-revel-black text-white">Confirmado</option>
+              <option value="PREPARING" class="bg-revel-black text-white">Preparando</option>
+              <option value="READY" class="bg-revel-black text-white">Listo</option>
+              <option value="ON_THE_WAY" class="bg-revel-black text-white">En camino</option>
+              <option value="AT_VENUE" class="bg-revel-black text-white">En el lugar</option>
+            </select>
+          </div>
+
           <!-- Acciones -->
           <div class="flex-shrink-0 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
@@ -267,7 +284,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Supplier, SupplierBooking, Event, BookingStatus } from '~/types'
+import type { Supplier, SupplierBooking, Event, BookingStatus, SupplierStatusValue } from '~/types'
 import { useAuthStore } from '~/stores/auth'
 import { useUiStore } from '~/stores/ui'
 import { useAuth } from '~/composables/useAuth'
@@ -333,6 +350,30 @@ function statusClass(s: BookingStatus) {
 }
 function statusLabel(s: BookingStatus) {
   return { CONFIRMED: 'Confirmado', PENDING: 'Pendiente', CANCELLED: 'Cancelado' }[s] ?? s
+}
+
+function supplierStatusClass(s: SupplierStatusValue | string) {
+  const map: Record<string, string> = {
+    PENDING:    'text-white/40 border-white/10',
+    CONFIRMED:  'text-blue-400 border-blue-500/30',
+    PREPARING:  'text-yellow-400 border-yellow-500/30',
+    READY:      'text-green-400 border-green-500/30',
+    ON_THE_WAY: 'text-purple-400 border-purple-500/30',
+    AT_VENUE:   'text-revel-gold border-revel-gold/30',
+  }
+  return map[s] ?? ''
+}
+
+async function updateSupplierStatus(b: SupplierBooking, newStatus: string) {
+  try {
+    await put<{ success: boolean; data: SupplierBooking }>(`/api/supplier-bookings/${b.id}/supplier-status`, {
+      supplierStatus: newStatus,
+    })
+    b.supplierStatus = newStatus as SupplierStatusValue
+    ui.success('Actualizado', 'Tu estado fue actualizado')
+  } catch {
+    ui.error('Error', 'No se pudo actualizar el estado')
+  }
 }
 
 function openAddModal() {

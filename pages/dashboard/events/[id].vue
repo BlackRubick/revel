@@ -183,6 +183,11 @@
       </UiFeatureLock>
       <DashboardTablesTab v-else :event-id="event.id" :tables="event.tables ?? []" />
     </div>
+
+    <!-- Seguimiento -->
+    <div v-if="activeTab === 'tracking'">
+      <DashboardTrackingTab :event-id="event.id" :event-slug="event.slug" />
+    </div>
   </div>
 
   <!-- Modal: Editar evento -->
@@ -613,6 +618,7 @@ const tabs = computed(() => [
   { key: 'overview', label: 'Resumen' },
   { key: 'guests', label: 'Invitados', count: event.value?._count?.guests },
   { key: 'tables', label: 'Mesas' },
+  { key: 'tracking', label: 'Seguimiento' },
 ])
 
 const appUrl = useRuntimeConfig().public.appUrl
