@@ -21,6 +21,10 @@ export default defineNitroPlugin((nitroApp) => {
 
     if (eventId) socket.join(`event:${eventId}`)
 
+    socket.on('join-chat', (bookingId: string) => {
+      socket.join(`chat:${bookingId}`)
+    })
+
     socket.on('disconnect', () => {})
   })
 

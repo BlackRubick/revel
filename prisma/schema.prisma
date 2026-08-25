@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -14,6 +15,13 @@ enum UserRole {
   SCANNER
   SCREEN
   GUEST
+  SUPPLIER
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
 }
 
 enum EventStatus {
@@ -71,11 +79,13 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  company       Company?         @relation(fields: [companyId], references: [id], onDelete: SetNull)
-  events        Event[]
-  suppliers     Supplier[]
-  refreshTokens RefreshToken[]
-  permissions   UserPermission[]
+  company          Company?         @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  events           Event[]
+  suppliersCreated Supplier[]       @relation("SupplierCreator")
+  supplierProfile  Supplier?        @relation("SupplierUser")
+  refreshTokens    RefreshToken[]
+  permissions      UserPermission[]
+  chatMessages     ChatMessage[]
 
   @@map("users")
 }
@@ -149,14 +159,15 @@ model Event {
   package   Package @relation(fields: [packageId], references: [id])
   organizer User    @relation(fields: [organizerId], references: [id])
 
-  guests      Guest[]
-  tables      EventTable[]
-  photos      Photo[]
-  videos      Video[]
-  messages    GuestMessage[]
-  invitations Invitation[]
-  payments    Payment[]
-  qrCodes     QRCode[]
+  guests           Guest[]
+  tables           EventTable[]
+  photos           Photo[]
+  videos           Video[]
+  messages         GuestMessage[]
+  invitations      Invitation[]
+  payments         Payment[]
+  qrCodes          QRCode[]
+  supplierBookings SupplierBooking[]
 
   @@map("events")
 }
@@ -289,22 +300,57 @@ model GuestMessage {
 }
 
 model Supplier {
-  id          String   @id @default(uuid())
-  name        String
-  category    String
-  email       String?
-  phone       String?
-  website     String?
-  address     String?
-  notes       String?  @db.Text
-  isActive    Boolean  @default(true)
-  creatorId   String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(uuid())
+  name           String
+  category       String
+  email          String?
+  phone          String?
+  website        String?
+  address        String?
+  notes          String?  @db.Text
+  isActive       Boolean  @default(true)
+  creatorId      String
+  supplierUserId String?  @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  creator User @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  creator      User              @relation("SupplierCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  supplierUser User?             @relation("SupplierUser", fields: [supplierUserId], references: [id], onDelete: SetNull)
+  bookings     SupplierBooking[]
 
   @@map("suppliers")
+}
+
+model SupplierBooking {
+  id          String        @id @default(uuid())
+  supplierId  String
+  eventId     String
+  eventDate   DateTime
+  cost        Decimal       @db.Decimal(10, 2)
+  currency    String        @default("MXN")
+  status      BookingStatus @default(PENDING)
+  notes       String?       @db.Text
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  supplier     Supplier      @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  event        Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  chatMessages ChatMessage[]
+
+  @@map("supplier_bookings")
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  bookingId String
+  senderId  String
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+
+  booking SupplierBooking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  sender  User            @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
 }
 
 model Payment {

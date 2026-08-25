@@ -1,8 +1,9 @@
-export type UserRole = 'ADMIN' | 'ENCARGADO' | 'ORGANIZER' | 'SCANNER' | 'SCREEN' | 'GUEST'
+export type UserRole = 'ADMIN' | 'ENCARGADO' | 'ORGANIZER' | 'SCANNER' | 'SCREEN' | 'GUEST' | 'SUPPLIER'
 export type EventStatus = 'DRAFT' | 'ACTIVE' | 'FINISHED' | 'CANCELLED'
 export type RSVPStatus = 'PENDING' | 'CONFIRMED' | 'DECLINED'
 export type PackageType = 'BASIC' | 'INTERMEDIATE' | 'ALL_INCLUSIVE' | 'ENTERPRISE'
 export type MediaStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED'
 
 export interface Company {
   id: string
@@ -176,6 +177,13 @@ export interface GuestMessage {
   createdAt: string
 }
 
+export interface SupplierUser {
+  id: string
+  name: string
+  email: string
+  isActive: boolean
+}
+
 export interface Supplier {
   id: string
   name: string
@@ -187,8 +195,36 @@ export interface Supplier {
   notes?: string
   isActive: boolean
   creatorId: string
+  supplierUserId?: string
   createdAt: string
   updatedAt: string
+  supplierUser?: SupplierUser
+  bookings?: SupplierBooking[]
+  _count?: { bookings: number }
+}
+
+export interface SupplierBooking {
+  id: string
+  supplierId: string
+  eventId: string
+  eventDate: string
+  cost: number
+  currency: string
+  status: BookingStatus
+  notes?: string
+  createdAt: string
+  updatedAt: string
+  supplier?: Pick<Supplier, 'id' | 'name' | 'category' | 'phone' | 'email'>
+  event?: Pick<Event, 'id' | 'name' | 'slug' | 'date' | 'venue' | 'type'> & { status?: EventStatus }
+}
+
+export interface ChatMessage {
+  id: string
+  bookingId: string
+  senderId: string
+  message: string
+  createdAt: string
+  sender?: Pick<User, 'id' | 'name' | 'role' | 'avatar'>
 }
 
 export interface DashboardStats {
