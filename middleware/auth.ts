@@ -15,13 +15,19 @@ export default defineNuxtRouteMiddleware((to) => {
     return navigateTo('/login-magic')
   }
 
+  // Suppliers solo acceden a /proveedor
+  if (auth.isAuthenticated && auth.user?.role === 'SUPPLIER' && !to.path.startsWith('/proveedor')) {
+    return navigateTo('/proveedor')
+  }
+
   if (auth.isAuthenticated && to.path === '/login-magic') {
     const redirectMap: Record<string, string> = {
       ADMIN: '/dashboard',
       ENCARGADO: '/dashboard',
       ORGANIZER: '/dashboard',
-      SCANNER: '/scanner',
+      SCANNER: '/dashboard/qr',
       SCREEN: '/pantalla',
+      SUPPLIER: '/proveedor',
     }
     return navigateTo(redirectMap[auth.user?.role ?? ''] ?? '/dashboard')
   }

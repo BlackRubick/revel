@@ -106,6 +106,7 @@ const roleLabel = computed(() => {
     ORGANIZER: 'Organizador',
     SCANNER: 'Escáner',
     SCREEN: 'Pantalla',
+    SUPPLIER: 'Proveedor',
   }
   return map[auth.user?.role ?? ''] ?? auth.user?.role ?? ''
 })

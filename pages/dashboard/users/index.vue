@@ -205,6 +205,7 @@ const roleOptions = computed(() => {
       { label: 'Organizador', value: 'ORGANIZER' },
       { label: 'Escáner', value: 'SCANNER' },
       { label: 'Pantalla', value: 'SCREEN' },
+      { label: 'Proveedor', value: 'SUPPLIER' },
       { label: 'Administrador', value: 'ADMIN' },
     ]
   }
@@ -212,17 +213,18 @@ const roleOptions = computed(() => {
     { label: 'Organizador', value: 'ORGANIZER' },
     { label: 'Escáner', value: 'SCANNER' },
     { label: 'Pantalla', value: 'SCREEN' },
+    { label: 'Proveedor', value: 'SUPPLIER' },
   ]
 })
 
 function roleLabel(role: string) {
-  const map: Record<string, string> = { ADMIN: 'Admin', ENCARGADO: 'Encargado', ORGANIZER: 'Organizador', SCANNER: 'Escáner', SCREEN: 'Pantalla', GUEST: 'Invitado' }
+  const map: Record<string, string> = { ADMIN: 'Admin', ENCARGADO: 'Encargado', ORGANIZER: 'Organizador', SCANNER: 'Escáner', SCREEN: 'Pantalla', GUEST: 'Invitado', SUPPLIER: 'Proveedor' }
   return map[role] ?? role
 }
 
 function roleVariant(role: string): 'gold' | 'info' | 'neutral' | 'success' | 'danger' {
   const map: Record<string, 'gold' | 'info' | 'neutral' | 'success' | 'danger'> = {
-    ADMIN: 'gold', ENCARGADO: 'danger', ORGANIZER: 'info', SCANNER: 'success', SCREEN: 'neutral',
+    ADMIN: 'gold', ENCARGADO: 'danger', ORGANIZER: 'info', SCANNER: 'success', SCREEN: 'neutral', SUPPLIER: 'info',
   }
   return map[role] ?? 'neutral'
 }

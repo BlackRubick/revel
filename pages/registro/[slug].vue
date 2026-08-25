@@ -85,7 +85,13 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                   </svg>
                 </div>
-                <span class="text-sm text-white/65">{{ event?.venue }}</span>
+                <a
+                  v-if="event?.venueMapUrl"
+                  :href="event.venueMapUrl"
+                  target="_blank"
+                  class="text-sm text-white/65 underline underline-offset-2"
+                >{{ event?.venue }}<span v-if="event?.venueAddress" class="text-white/40">, {{ event.venueAddress }}</span></a>
+                <span v-else class="text-sm text-white/65">{{ event?.venue }}<span v-if="event?.venueAddress" class="text-white/40">, {{ event.venueAddress }}</span></span>
               </div>
             </div>
 
@@ -243,8 +249,20 @@
                 </div>
                 <div>
                   <p class="text-xs text-white/35 uppercase tracking-wider">Lugar</p>
-                  <p class="text-sm text-white/80">{{ result.event.venue }}</p>
-                  <p v-if="result.event.venueAddress" class="text-xs text-white/40">{{ result.event.venueAddress }}</p>
+                  <a
+                    v-if="result.event.venueMapUrl"
+                    :href="result.event.venueMapUrl"
+                    target="_blank"
+                    class="text-sm text-white/80 underline underline-offset-2 block"
+                  >{{ result.event.venue }}</a>
+                  <p v-else class="text-sm text-white/80">{{ result.event.venue }}</p>
+                  <a
+                    v-if="result.event.venueAddress && result.event.venueMapUrl"
+                    :href="result.event.venueMapUrl"
+                    target="_blank"
+                    class="text-xs text-white/40 underline underline-offset-2 block"
+                  >{{ result.event.venueAddress }}</a>
+                  <p v-else-if="result.event.venueAddress" class="text-xs text-white/40">{{ result.event.venueAddress }}</p>
                 </div>
               </div>
 

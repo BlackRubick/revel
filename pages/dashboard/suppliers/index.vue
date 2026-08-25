@@ -112,9 +112,23 @@
           {{ supplier.notes }}
         </p>
 
-        <!-- Acciones (solo ADMIN) -->
-        <div v-if="isAdmin" class="flex gap-2 mt-auto pt-2 border-t border-white/6">
+        <!-- Acciones -->
+        <div class="flex gap-2 mt-auto pt-2 border-t border-white/6">
+          <!-- Ver agenda (todos) -->
+          <NuxtLink
+            :to="`/dashboard/suppliers/${supplier.id}`"
+            class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white/60 border border-white/10 hover:bg-white/5 hover:text-white transition-all"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            Agenda
+            <span v-if="supplier._count?.bookings" class="ml-1 px-1.5 py-0.5 rounded bg-revel-gold/10 text-revel-gold text-[10px] font-semibold">
+              {{ supplier._count.bookings }}
+            </span>
+          </NuxtLink>
           <button
+            v-if="isAdmin"
             class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-revel-gold border border-revel-gold/20 hover:bg-revel-gold/8 transition-all"
             @click="openEdit(supplier)"
           >
@@ -124,13 +138,13 @@
             Editar
           </button>
           <button
-            class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-400 border border-red-400/20 hover:bg-red-400/8 transition-all"
+            v-if="isAdmin"
+            class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-400 border border-red-400/20 hover:bg-red-400/8 transition-all"
             @click="confirmDelete(supplier)"
           >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
-            Eliminar
           </button>
         </div>
       </div>

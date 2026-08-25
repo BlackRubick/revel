@@ -6,6 +6,10 @@ export default defineEventHandler(async (event) => {
 
   const suppliers = await prisma.supplier.findMany({
     orderBy: [{ category: 'asc' }, { name: 'asc' }],
+    include: {
+      supplierUser: { select: { id: true, name: true, email: true, isActive: true } },
+      _count: { select: { bookings: true } },
+    },
   })
 
   return { success: true, data: suppliers }

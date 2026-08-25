@@ -53,5 +53,43 @@ export default defineEventHandler(async (event) => {
     },
   })
 
+  // Sync event_tables when tableCount or tableCapacity changes
+  if (parsed.data.tableCount !== undefined || parsed.data.tableCapacity !== undefined) {
+    const newCount = updated.tableCount
+    const newCapacity = updated.tableCapacity
+
+    const existingTables = await prisma.eventTable.findMany({
+      where: { eventId: id! },
+      orderBy: { number: 'asc' },
+    })
+
+    const currentCount = existingTables.length
+
+    // Update capacity on all existing tables
+    if (parsed.data.tableCapacity !== undefined) {
+      await prisma.eventTable.updateMany({
+        where: { eventId: id! },
+        data: { capacity: newCapacity },
+      })
+    }
+
+    // Add missing tables if count increased
+    if (newCount > currentCount) {
+      for (let i = currentCount + 1; i <= newCount; i++) {
+        await prisma.eventTable.create({
+          data: { eventId: id!, number: i, name: `Mesa ${i}`, capacity: newCapacity, shape: 'ROUND', positionX: 0, positionY: 0 },
+        })
+      }
+    }
+
+    // Remove extra tables if count decreased (only unassigned ones first)
+    if (newCount < currentCount) {
+      const toRemove = existingTables.slice(newCount)
+      for (const table of toRemove) {
+        await prisma.eventTable.delete({ where: { id: table.id } }).catch(() => {})
+      }
+    }
+  }
+
   return { success: true, data: updated }
 })

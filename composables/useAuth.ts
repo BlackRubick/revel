@@ -13,9 +13,11 @@ export function useAuth() {
 
       const redirectMap: Record<string, string> = {
         ADMIN: '/dashboard',
+        ENCARGADO: '/dashboard',
         ORGANIZER: '/dashboard',
         SCANNER: '/dashboard/qr',
         SCREEN: '/pantalla',
+        SUPPLIER: '/proveedor',
       }
       const redirect = redirectMap[auth.user?.role ?? 'ORGANIZER'] ?? '/dashboard'
       await router.push(redirect)
