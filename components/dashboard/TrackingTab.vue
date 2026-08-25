@@ -183,6 +183,7 @@
 </template>
 
 <script setup lang="ts">
+import type { Socket } from 'socket.io-client'
 import type { EventStage, SupplierBooking, SupplierStatusValue } from '~/types'
 import { useUiStore } from '~/stores/ui'
 
@@ -202,6 +203,7 @@ const loadingBookings = ref(true)
 const showAddStage = ref(false)
 const addingStage = ref(false)
 const stageForm = reactive({ title: '', description: '' })
+const socket = ref<Socket | null>(null)
 
 const trackingUrl = computed(() => `${config.public.appUrl}/seguimiento/${props.eventSlug}`)
 
@@ -294,5 +296,32 @@ onMounted(async () => {
   if (bRes.status === 'fulfilled') bookings.value = bRes.value.data
   loadingStages.value = false
   loadingBookings.value = false
+
+  // Socket.IO — actualizaciones en tiempo real para el organizador
+  if (import.meta.client) {
+    const { io } = await import('socket.io-client')
+    socket.value = io(config.public.socketUrl, { transports: ['websocket', 'polling'] })
+    socket.value.on('connect', () => socket.value?.emit('join-event', props.eventId))
+
+    socket.value.on('stage-update', ({ type, stage, stageId }: { type: string; stage?: EventStage; stageId?: string }) => {
+      if (type === 'created' && stage) {
+        stages.value.push(stage)
+      } else if (type === 'updated' && stage) {
+        const idx = stages.value.findIndex(s => s.id === stage.id)
+        if (idx !== -1) stages.value[idx] = stage
+      } else if (type === 'deleted' && stageId) {
+        stages.value = stages.value.filter(s => s.id !== stageId)
+      }
+    })
+
+    socket.value.on('supplier-status-update', ({ bookingId, supplierStatus }: { bookingId: string; supplierStatus: string }) => {
+      const b = bookings.value.find(b => b.id === bookingId)
+      if (b) b.supplierStatus = supplierStatus as SupplierStatusValue
+    })
+  }
+})
+
+onUnmounted(() => {
+  socket.value?.disconnect()
 })
 </script>
