@@ -6,7 +6,16 @@ import { prisma } from '~/server/utils/prisma'
 const schema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres').max(100),
   companions: z.number().int().min(0).max(20).default(0),
+  companionNames: z.array(z.string().max(100)).optional().default([]),
 })
+
+async function generateQR(url: string): Promise<string> {
+  return QRCode.toDataURL(url, {
+    color: { dark: '#D4AF37', light: '#0A0A0A' },
+    width: 300,
+    margin: 2,
+  })
+}
 
 export default defineEventHandler(async (event) => {
   const slug = getRouterParam(event, 'slug')
@@ -31,36 +40,61 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 410, message: 'Este evento ya finalizó o fue cancelado' })
   }
 
+  const config = useRuntimeConfig()
+  const { companions: companionCount, companionNames } = parsed.data
+
   const guest = await prisma.guest.create({
     data: {
       eventId: ev.id,
       name: parsed.data.name.trim(),
-      companions: parsed.data.companions,
+      companions: companionCount,
       rsvpStatus: 'CONFIRMED',
       rsvpAt: new Date(),
     },
   })
 
-  const code = nanoid(16)
-  const config = useRuntimeConfig()
-  const qrUrl = `${config.public.appUrl}/confirmar/${code}`
-  const qrImage = await QRCode.toDataURL(qrUrl, {
-    color: { dark: '#D4AF37', light: '#0A0A0A' },
-    width: 300,
-    margin: 2,
+  // QR del invitado principal
+  const guestCode = nanoid(16)
+  const guestQrImage = await generateQR(`${config.public.appUrl}/confirmar/${guestCode}`)
+  await prisma.qRCode.create({
+    data: { eventId: ev.id, guestId: guest.id, type: 'GUEST', code: guestCode, qrImage: guestQrImage },
   })
 
-  await prisma.qRCode.create({
-    data: { eventId: ev.id, guestId: guest.id, type: 'GUEST', code, qrImage },
-  })
+  // QR por cada acompañante nombrado
+  const companionResults: { name: string; qrImage: string; code: string }[] = []
+
+  const names = companionNames.slice(0, companionCount)
+  for (let i = 0; i < companionCount; i++) {
+    const companionName = names[i]?.trim() || `Acompañante ${i + 1}`
+
+    const companion = await prisma.companion.create({
+      data: { guestId: guest.id, name: companionName },
+    })
+
+    const companionCode = nanoid(16)
+    const companionQrImage = await generateQR(`${config.public.appUrl}/confirmar/${companionCode}`)
+    await prisma.qRCode.create({
+      data: {
+        eventId: ev.id,
+        guestId: guest.id,
+        companionId: companion.id,
+        type: 'COMPANION',
+        code: companionCode,
+        qrImage: companionQrImage,
+      },
+    })
+
+    companionResults.push({ name: companionName, qrImage: companionQrImage, code: companionCode })
+  }
 
   return {
     success: true,
     data: {
       guest: { name: guest.name, companions: guest.companions },
       event: ev,
-      code,
-      qrImage,
+      code: guestCode,
+      qrImage: guestQrImage,
+      companionResults,
     },
   }
 })

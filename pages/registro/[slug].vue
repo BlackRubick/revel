@@ -124,7 +124,7 @@
                     type="button"
                     :disabled="form.companions === 0"
                     class="w-9 h-9 rounded-lg flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 disabled:opacity-25 disabled:cursor-not-allowed transition-all"
-                    @click="form.companions = Math.max(0, form.companions - 1)"
+                    @click="removeCompanion"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
@@ -142,7 +142,7 @@
                     type="button"
                     :disabled="form.companions === 20"
                     class="w-9 h-9 rounded-lg flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 disabled:opacity-25 disabled:cursor-not-allowed transition-all"
-                    @click="form.companions = Math.min(20, form.companions + 1)"
+                    @click="addCompanion"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -152,6 +152,29 @@
                 <p class="text-[11px] text-white/30 text-center mt-1.5">
                   Total: {{ form.companions + 1 }} {{ form.companions + 1 === 1 ? 'persona' : 'personas' }}
                 </p>
+
+                <!-- Nombres de acompañantes -->
+                <Transition name="fade">
+                  <div v-if="form.companions > 0" class="mt-3 space-y-2">
+                    <p class="text-[11px] text-white/40 text-center mb-1">Escribe el nombre de cada acompañante (opcional)</p>
+                    <div
+                      v-for="(_, i) in form.companionNames"
+                      :key="i"
+                      class="flex items-center gap-2"
+                    >
+                      <div class="w-6 h-6 rounded-full bg-revel-gold/15 border border-revel-gold/25 flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-revel-gold">
+                        {{ i + 1 }}
+                      </div>
+                      <input
+                        v-model="form.companionNames[i]"
+                        type="text"
+                        :placeholder="`Acompañante ${i + 1}`"
+                        maxlength="100"
+                        class="input-revel w-full text-sm py-2"
+                      />
+                    </div>
+                  </div>
+                </Transition>
               </div>
 
               <!-- Error de envío -->
@@ -282,7 +305,7 @@
 
             </div>
 
-            <!-- QR code -->
+            <!-- QR titular -->
             <div class="px-6 pb-5">
               <div class="flex flex-col items-center gap-3 p-4 rounded-2xl bg-revel-gold/6 border border-revel-gold/20">
                 <p class="text-[11px] text-revel-gold/60 font-semibold uppercase tracking-widest">Tu código de acceso</p>
@@ -290,6 +313,29 @@
                   <img :src="result.qrImage" alt="QR code" class="w-44 h-44 block rounded-xl" />
                 </div>
                 <p class="text-[10px] text-white/25 font-mono">{{ result.code }}</p>
+              </div>
+            </div>
+
+            <!-- QRs de acompañantes -->
+            <div v-if="result.companionResults?.length" class="px-6 pb-5 space-y-3">
+              <p class="text-[11px] text-white/40 font-semibold uppercase tracking-widest text-center">
+                Códigos de acompañantes
+              </p>
+              <div
+                v-for="(c, i) in result.companionResults"
+                :key="i"
+                class="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white/4 border border-white/10"
+              >
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-full bg-revel-gold/15 border border-revel-gold/25 flex items-center justify-center text-[10px] font-bold text-revel-gold flex-shrink-0">
+                    {{ i + 1 }}
+                  </div>
+                  <p class="text-sm font-semibold text-white">{{ c.name }}</p>
+                </div>
+                <div class="bg-revel-black p-3 rounded-2xl border border-white/10">
+                  <img :src="c.qrImage" alt="QR acompañante" class="w-36 h-36 block rounded-xl" />
+                </div>
+                <p class="text-[10px] text-white/20 font-mono">{{ c.code }}</p>
               </div>
             </div>
 
@@ -318,7 +364,7 @@
 
           <!-- Nota de guardado -->
           <p class="text-center text-white/25 text-xs px-4">
-            Guarda esta pantalla o toma una captura. Tu código QR es tu entrada al evento.
+            Guarda esta pantalla o toma capturas. Cada QR es la entrada individual de cada persona.
           </p>
 
         </div>
@@ -355,11 +401,18 @@ interface PublicEvent {
   status: string
 }
 
+interface CompanionResult {
+  name: string
+  qrImage: string
+  code: string
+}
+
 interface RegistrationResult {
   guest: { name: string; companions: number }
   event: PublicEvent
   code: string
   qrImage: string
+  companionResults: CompanionResult[]
 }
 
 const event = ref<PublicEvent | null>(null)
@@ -368,7 +421,20 @@ const result = ref<RegistrationResult | null>(null)
 const form = reactive({
   name: '',
   companions: 0,
+  companionNames: [] as string[],
 })
+
+function addCompanion() {
+  if (form.companions >= 20) return
+  form.companions++
+  form.companionNames.push('')
+}
+
+function removeCompanion() {
+  if (form.companions <= 0) return
+  form.companions--
+  form.companionNames.pop()
+}
 
 const EVENT_IMAGES: Record<string, string> = {
   wedding:       '/images/event-types/wedding.jpg',
@@ -398,7 +464,7 @@ async function register() {
   try {
     const res = await $fetch<{ success: boolean; data: RegistrationResult }>(
       `/api/registro/${slug}`,
-      { method: 'POST', body: { name: form.name.trim(), companions: form.companions } },
+      { method: 'POST', body: { name: form.name.trim(), companions: form.companions, companionNames: form.companionNames } },
     )
     result.value = res.data
     step.value = 'success'

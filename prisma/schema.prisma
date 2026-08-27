@@ -206,13 +206,14 @@ model Guest {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
-  event      Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  table      EventTable? @relation(fields: [tableId], references: [id], onDelete: SetNull)
-  qrCodes    QRCode[]
-  invitation Invitation?
-  photos     Photo[]
-  videos     Video[]
-  messages   GuestMessage[]
+  event         Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  table         EventTable? @relation(fields: [tableId], references: [id], onDelete: SetNull)
+  qrCodes       QRCode[]
+  invitation    Invitation?
+  photos        Photo[]
+  videos        Video[]
+  messages      GuestMessage[]
+  companionList Companion[]
 
   @@map("guests")
 }
@@ -234,21 +235,35 @@ model Invitation {
 }
 
 model QRCode {
-  id        String   @id @default(uuid())
-  eventId   String
-  guestId   String?
-  type      String
-  code      String   @unique
-  qrImage   String?  @db.LongText
-  usedAt    DateTime?
-  usedCount Int      @default(0)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  eventId     String
+  guestId     String?
+  companionId String?
+  type        String
+  code        String   @unique
+  qrImage     String?  @db.LongText
+  usedAt      DateTime?
+  usedCount   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
 
-  event Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  guest Guest? @relation(fields: [guestId], references: [id], onDelete: SetNull)
+  event     Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  guest     Guest?     @relation(fields: [guestId], references: [id], onDelete: SetNull)
+  companion Companion? @relation(fields: [companionId], references: [id], onDelete: SetNull)
 
   @@map("qr_codes")
+}
+
+model Companion {
+  id        String   @id @default(uuid())
+  guestId   String
+  name      String
+  createdAt DateTime @default(now())
+
+  guest   Guest    @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  qrCodes QRCode[]
+
+  @@map("companions")
 }
 
 model Photo {
