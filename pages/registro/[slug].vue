@@ -313,6 +313,15 @@
                   <img :src="result.qrImage" alt="QR code" class="w-44 h-44 block rounded-xl" />
                 </div>
                 <p class="text-[10px] text-white/25 font-mono">{{ result.code }}</p>
+                <button
+                  class="flex items-center gap-2 px-4 py-2 rounded-xl bg-revel-gold text-revel-black text-xs font-bold hover:opacity-90 transition-opacity w-full justify-center"
+                  @click="downloadQR(result.qrImage, result.guest.name)"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                  </svg>
+                  Descargar mi QR
+                </button>
               </div>
             </div>
 
@@ -336,6 +345,15 @@
                   <img :src="c.qrImage" alt="QR acompañante" class="w-36 h-36 block rounded-xl" />
                 </div>
                 <p class="text-[10px] text-white/20 font-mono">{{ c.code }}</p>
+                <button
+                  class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/8 border border-white/12 text-white/70 text-xs font-semibold hover:bg-white/12 transition-all w-full justify-center"
+                  @click="downloadQR(c.qrImage, c.name)"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                  </svg>
+                  Descargar QR de {{ c.name }}
+                </button>
               </div>
             </div>
 
@@ -423,6 +441,13 @@ const form = reactive({
   companions: 0,
   companionNames: [] as string[],
 })
+
+function downloadQR(dataUrl: string, name: string) {
+  const a = document.createElement('a')
+  a.href = dataUrl
+  a.download = `qr-${name.toLowerCase().replace(/\s+/g, '-')}.png`
+  a.click()
+}
 
 function addCompanion() {
   if (form.companions >= 20) return
