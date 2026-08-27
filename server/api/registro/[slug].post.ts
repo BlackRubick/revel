@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
   const existing = await prisma.guest.findFirst({
     where: {
       eventId: ev.id,
-      name: { equals: parsed.data.name.trim(), mode: 'insensitive' },
+      name: parsed.data.name.trim(),
     },
   })
   if (existing) {
