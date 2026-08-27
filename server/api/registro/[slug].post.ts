@@ -43,6 +43,16 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const { companions: companionCount, companionNames } = parsed.data
 
+  const existing = await prisma.guest.findFirst({
+    where: {
+      eventId: ev.id,
+      name: { equals: parsed.data.name.trim(), mode: 'insensitive' },
+    },
+  })
+  if (existing) {
+    throw createError({ statusCode: 409, message: 'Ya existe un registro con ese nombre para este evento. Si ya te registraste, revisa el QR que recibiste anteriormente.' })
+  }
+
   const guest = await prisma.guest.create({
     data: {
       eventId: ev.id,
