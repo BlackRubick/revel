@@ -53,10 +53,10 @@
                   {{ msg.sender?.name?.[0]?.toUpperCase() ?? '?' }}
                 </div>
 
-                <div class="flex flex-col gap-0.5 max-w-[78%]" :class="isMine(msg) ? 'items-end' : 'items-start'">
+                <div class="flex flex-col gap-0.5 max-w-[78%] min-w-0" :class="isMine(msg) ? 'items-end' : 'items-start'">
                   <!-- Bubble -->
                   <div
-                    class="relative px-3 py-2 rounded-2xl text-sm leading-relaxed cursor-pointer select-none"
+                    class="relative px-3 py-2 rounded-2xl text-sm leading-relaxed cursor-pointer select-none w-fit max-w-full break-all"
                     :class="[
                       isMine(msg) ? 'bg-revel-gold/15 border border-revel-gold/25 text-white rounded-br-sm' : 'bg-white/[0.06] border border-white/8 text-white/85 rounded-bl-sm',
                       msg.fileUrl && !msg.message ? 'p-1.5' : ''
@@ -104,7 +104,7 @@
                     </a>
 
                     <!-- Text / caption -->
-                    <span v-if="msg.message" class="block break-words whitespace-pre-wrap">{{ msg.message }}</span>
+                    <span v-if="msg.message" class="block break-all whitespace-pre-wrap">{{ msg.message }}</span>
 
                     <!-- Reply button on hover -->
                     <button
