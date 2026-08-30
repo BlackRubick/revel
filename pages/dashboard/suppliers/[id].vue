@@ -1,190 +1,196 @@
 <template>
-  <div>
-    <!-- Back -->
-    <div class="flex items-center gap-2 mb-6">
-      <NuxtLink to="/dashboard/suppliers" class="flex items-center gap-1.5 text-sm text-white/40 hover:text-white/70 transition-colors">
+  <div class="flex flex-col h-[calc(100vh-5rem)] -mt-4 -mx-4 lg:-mt-6 lg:-mx-6">
+
+    <!-- Top bar: breadcrumb + supplier info -->
+    <div class="flex-shrink-0 px-5 py-3 border-b border-white/8 bg-revel-gray-dark/60 flex items-center gap-4 flex-wrap">
+      <NuxtLink to="/dashboard/suppliers" class="flex items-center gap-1.5 text-sm text-white/40 hover:text-white/70 transition-colors flex-shrink-0">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
         Proveedores
       </NuxtLink>
-    </div>
 
-    <!-- Loading skeleton -->
-    <div v-if="loading" class="space-y-4">
-      <div class="h-28 shimmer rounded-2xl"/>
-      <div class="h-64 shimmer rounded-2xl"/>
-    </div>
-
-    <template v-else-if="supplier">
-      <!-- Header del proveedor -->
-      <div class="card-revel p-5 mb-6">
-        <div class="flex items-start justify-between gap-4 flex-wrap">
-          <div class="flex items-center gap-4">
-            <div
-              class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-white/70"
-              :style="{ background: categoryColor(supplier.category) }"
-              v-html="categoryIcon(supplier.category)"
-            />
-            <div>
-              <div class="flex items-center gap-3 flex-wrap">
-                <h2 class="font-display text-xl font-bold text-white">{{ supplier.name }}</h2>
-                <span class="px-2 py-0.5 rounded-md bg-revel-gold/10 text-revel-gold text-xs font-medium border border-revel-gold/20">
-                  {{ supplier.category }}
-                </span>
-                <UiBadge :variant="supplier.isActive ? 'success' : 'neutral'" dot>
-                  {{ supplier.isActive ? 'Activo' : 'Inactivo' }}
-                </UiBadge>
-              </div>
-              <div class="flex flex-wrap gap-4 mt-2">
-                <a v-if="supplier.phone" :href="`https://wa.me/52${supplier.phone.replace(/\D/g,'')}`" target="_blank"
-                  class="flex items-center gap-1.5 text-xs text-white/50 hover:text-green-400 transition-colors">
-                  <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
-                    <path d="M12 0C5.373 0 0 5.373 0 12c0 2.104.547 4.066 1.503 5.771L0 24l6.336-1.461A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.812 9.812 0 01-5.003-1.368l-.36-.214-3.76.866.9-3.646-.235-.374A9.795 9.795 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182c5.43 0 9.818 4.388 9.818 9.818 0 5.43-4.388 9.818-9.818 9.818z"/>
-                  </svg>
-                  {{ supplier.phone }}
-                </a>
-                <a v-if="supplier.email" :href="`mailto:${supplier.email}`" class="flex items-center gap-1.5 text-xs text-white/50 hover:text-white transition-colors">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                  </svg>
-                  {{ supplier.email }}
-                </a>
-              </div>
+      <template v-if="supplier && !loading">
+        <span class="text-white/15 flex-shrink-0">/</span>
+        <div class="flex items-center gap-3 flex-1 min-w-0">
+          <div
+            class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-white/80"
+            :style="{ background: categoryColor(supplier.category) }"
+            v-html="categoryIcon(supplier.category)"
+          />
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 class="font-semibold text-white text-sm truncate">{{ supplier.name }}</h2>
+              <span class="px-2 py-0.5 rounded-md bg-revel-gold/10 text-revel-gold text-[10px] font-medium border border-revel-gold/20 flex-shrink-0">{{ supplier.category }}</span>
+              <UiBadge :variant="supplier.isActive ? 'success' : 'neutral'" dot class="flex-shrink-0">
+                {{ supplier.isActive ? 'Activo' : 'Inactivo' }}
+              </UiBadge>
             </div>
-          </div>
-
-          <!-- Stats y acciones -->
-          <div class="flex items-center gap-4">
-            <div class="flex gap-6 text-center">
-              <div>
-                <p class="text-xl font-bold text-white">{{ supplier.bookings?.length ?? 0 }}</p>
-                <p class="text-xs text-white/40">Eventos</p>
-              </div>
-              <div>
-                <p class="text-xl font-bold text-revel-gold">${{ totalFormatted }}</p>
-                <p class="text-xs text-white/40">Total</p>
-              </div>
+            <div class="flex flex-wrap gap-3 mt-0.5">
+              <a v-if="supplier.phone" :href="`https://wa.me/52${supplier.phone.replace(/\D/g,'')}`" target="_blank"
+                class="flex items-center gap-1 text-[10px] text-white/40 hover:text-green-400 transition-colors">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                  <path d="M12 0C5.373 0 0 5.373 0 12c0 2.104.547 4.066 1.503 5.771L0 24l6.336-1.461A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.812 9.812 0 01-5.003-1.368l-.36-.214-3.76.866.9-3.646-.235-.374A9.795 9.795 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182c5.43 0 9.818 4.388 9.818 9.818 0 5.43-4.388 9.818-9.818 9.818z"/>
+                </svg>
+                {{ supplier.phone }}
+              </a>
+              <a v-if="supplier.email" :href="`mailto:${supplier.email}`" class="flex items-center gap-1 text-[10px] text-white/40 hover:text-white transition-colors">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                {{ supplier.email }}
+              </a>
             </div>
-            <UiButton size="sm" @click="openAddBooking">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-              </svg>
-              Asignar evento
-            </UiButton>
           </div>
         </div>
+
+        <!-- Stats + actions -->
+        <div class="flex items-center gap-4 flex-shrink-0 ml-auto">
+          <div class="flex gap-5 text-center">
+            <div>
+              <p class="text-base font-bold text-white leading-none">{{ supplier.bookings?.length ?? 0 }}</p>
+              <p class="text-[10px] text-white/35 mt-0.5">Eventos</p>
+            </div>
+            <div>
+              <p class="text-base font-bold text-revel-gold leading-none">${{ totalFormatted }}</p>
+              <p class="text-[10px] text-white/35 mt-0.5">Total</p>
+            </div>
+          </div>
+          <button
+            class="text-[10px] text-white/35 hover:text-white/60 transition-colors underline underline-offset-2 flex-shrink-0"
+            @click="showLinkModal = true"
+          >
+            {{ supplier.supplierUser ? 'Cambiar usuario' : 'Vincular usuario' }}
+          </button>
+          <UiButton size="sm" @click="openAddBooking">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Asignar evento
+          </UiButton>
+        </div>
+      </template>
+
+      <!-- Loading state -->
+      <div v-else-if="loading" class="flex gap-3 items-center">
+        <div class="w-8 h-8 shimmer rounded-lg"/>
+        <div class="w-32 h-4 shimmer rounded"/>
+      </div>
+    </div>
+
+    <!-- Body: two columns -->
+    <div class="flex-1 flex overflow-hidden">
+
+      <!-- LEFT: bookings list -->
+      <div class="w-72 flex-shrink-0 border-r border-white/8 flex flex-col overflow-hidden bg-revel-gray-dark/30">
 
         <!-- Usuario vinculado -->
-        <div class="mt-4 pt-4 border-t border-white/6">
-          <div class="flex items-center justify-between flex-wrap gap-3">
-            <div>
-              <p class="text-xs text-white/40 mb-1 font-semibold uppercase tracking-wide">Usuario de acceso</p>
-              <div v-if="supplier.supplierUser" class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded-full bg-revel-gold/20 flex items-center justify-center text-revel-gold text-xs font-bold">
-                  {{ supplier.supplierUser.name[0] }}
-                </div>
-                <span class="text-sm text-white/80">{{ supplier.supplierUser.name }}</span>
-                <span class="text-xs text-white/40">{{ supplier.supplierUser.email }}</span>
-                <UiBadge :variant="supplier.supplierUser.isActive ? 'success' : 'neutral'" dot class="ml-1">
-                  {{ supplier.supplierUser.isActive ? 'Activo' : 'Inactivo' }}
-                </UiBadge>
-              </div>
-              <p v-else class="text-sm text-white/35 italic">Sin usuario vinculado — el proveedor no puede acceder al portal</p>
+        <div v-if="supplier" class="px-4 py-3 border-b border-white/6 flex-shrink-0">
+          <p class="text-[10px] font-semibold text-white/30 uppercase tracking-wider mb-1.5">Usuario de acceso</p>
+          <div v-if="supplier.supplierUser" class="flex items-center gap-2">
+            <div class="w-5 h-5 rounded-full bg-revel-gold/20 flex items-center justify-center text-revel-gold text-[9px] font-bold flex-shrink-0">
+              {{ supplier.supplierUser.name[0] }}
             </div>
-            <button
-              class="text-xs text-white/40 hover:text-white/70 transition-colors underline underline-offset-2"
-              @click="showLinkModal = true"
-            >
-              {{ supplier.supplierUser ? 'Cambiar usuario' : 'Vincular usuario' }}
-            </button>
+            <div class="min-w-0">
+              <p class="text-xs text-white/70 truncate">{{ supplier.supplierUser.name }}</p>
+              <p class="text-[9px] text-white/30 truncate">{{ supplier.supplierUser.email }}</p>
+            </div>
+            <UiBadge :variant="supplier.supplierUser.isActive ? 'success' : 'neutral'" dot class="flex-shrink-0 ml-auto"/>
           </div>
+          <p v-else class="text-xs text-white/30 italic">Sin usuario vinculado</p>
         </div>
-      </div>
 
-      <!-- Agenda / Bookings -->
-      <div>
-        <h3 class="text-sm font-semibold text-white/70 uppercase tracking-widest mb-3">Agenda de eventos</h3>
+        <!-- Bookings header -->
+        <div class="px-4 py-2.5 flex items-center justify-between flex-shrink-0">
+          <p class="text-[10px] font-semibold text-white/30 uppercase tracking-wider">Eventos asignados</p>
+        </div>
 
-        <div v-if="!supplier.bookings?.length" class="card-revel p-8 text-center">
-          <svg class="w-10 h-10 text-white/20 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Loading -->
+        <div v-if="loading" class="px-3 space-y-2 flex-1">
+          <div v-for="i in 3" :key="i" class="h-16 shimmer rounded-xl"/>
+        </div>
+
+        <!-- Sin bookings -->
+        <div v-else-if="!supplier?.bookings?.length" class="flex-1 flex flex-col items-center justify-center px-4 py-8 text-center">
+          <svg class="w-8 h-8 text-white/15 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
           </svg>
-          <p class="text-white/60 text-sm">No hay eventos asignados a este proveedor.</p>
-          <p class="text-white/30 text-xs mt-1">Usa el botón "Asignar evento" para agregar.</p>
+          <p class="text-white/35 text-xs">Sin eventos asignados</p>
+          <button class="mt-2 text-xs text-revel-gold/70 hover:text-revel-gold transition-colors" @click="openAddBooking">+ Asignar evento</button>
         </div>
 
-        <div v-else class="space-y-3">
-          <div
-            v-for="b in supplier.bookings"
+        <!-- Lista -->
+        <div v-else class="flex-1 overflow-y-auto px-3 pb-3 space-y-1">
+          <button
+            v-for="b in supplier!.bookings"
             :key="b.id"
-            class="card-revel p-5 flex items-center gap-4 group hover:border-white/12 transition-all"
+            class="w-full text-left px-3 py-2.5 rounded-xl transition-all group relative"
+            :class="chatBooking?.id === b.id
+              ? 'bg-revel-gold/10 border border-revel-gold/25'
+              : 'hover:bg-white/[0.04] border border-transparent'"
+            @click="openChat(b)"
           >
-            <!-- Fecha -->
-            <div class="flex-shrink-0 w-14 text-center">
-              <p class="text-2xl font-bold text-white leading-none">{{ dayOf(b.eventDate) }}</p>
-              <p class="text-xs text-white/40 uppercase tracking-wide mt-0.5">{{ monthOf(b.eventDate) }}</p>
-              <p class="text-xs text-white/25">{{ yearOf(b.eventDate) }}</p>
-            </div>
-            <div class="w-px h-12 bg-white/8 flex-shrink-0"/>
-
-            <!-- Evento info -->
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 flex-wrap">
-                <p class="font-semibold text-white text-sm">{{ b.event?.name }}</p>
-                <span class="px-1.5 py-0.5 rounded bg-white/5 text-white/40 text-xs">{{ b.event?.type }}</span>
+            <div class="flex items-start gap-2.5">
+              <!-- Fecha -->
+              <div class="flex-shrink-0 w-9 text-center pt-0.5">
+                <p class="text-sm font-bold leading-none" :class="chatBooking?.id === b.id ? 'text-revel-gold' : 'text-white/60'">{{ dayOf(b.eventDate) }}</p>
+                <p class="text-[9px] text-white/30 uppercase tracking-wide">{{ monthOf(b.eventDate) }}</p>
               </div>
-              <p class="text-xs text-white/50 mt-0.5">
-                <svg class="w-3 h-3 inline mr-1 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-                {{ b.event?.venue }}
-              </p>
-              <p v-if="b.notes" class="text-xs text-white/35 mt-1">{{ b.notes }}</p>
+              <!-- Info -->
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium text-white truncate">{{ b.event?.name ?? 'Evento' }}</p>
+                <div class="flex items-center gap-1.5 mt-0.5">
+                  <span :class="statusClass(b.status)" class="inline-flex items-center px-1.5 py-px rounded text-[9px] font-medium">{{ statusLabel(b.status) }}</span>
+                  <span class="text-[9px] text-white/30">{{ formatCost(b.cost) }} {{ b.currency }}</span>
+                </div>
+                <p v-if="b.event?.venue" class="text-[9px] text-white/25 mt-0.5 truncate">{{ b.event.venue }}</p>
+              </div>
+              <!-- Actions (hover) -->
+              <div class="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                <button class="p-1 rounded-md hover:bg-white/10 text-white/30 hover:text-white transition-all" @click.stop="openEditBooking(b)">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                </button>
+                <button class="p-1 rounded-md hover:bg-red-500/10 text-white/30 hover:text-red-400 transition-all" @click.stop="confirmDeleteBooking(b)">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
             </div>
-
-            <!-- Costo y estado -->
-            <div class="flex-shrink-0 text-right">
-              <p class="text-lg font-bold text-revel-gold">${{ formatCost(b.cost) }} <span class="text-xs font-normal text-white/40">{{ b.currency }}</span></p>
-              <span :class="statusClass(b.status)" class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium mt-1">
-                {{ statusLabel(b.status) }}
-              </span>
-            </div>
-
-            <!-- Acciones -->
-            <div class="flex-shrink-0 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button class="p-1.5 rounded-lg bg-white/5 hover:bg-revel-gold/10 text-white/50 hover:text-revel-gold transition-all" title="Chat" @click="openChat(b)">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                </svg>
-              </button>
-              <button class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all" @click="openEditBooking(b)">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                </svg>
-              </button>
-              <button class="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/10 text-white/50 hover:text-red-400 transition-all" @click="confirmDeleteBooking(b)">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-              </button>
-            </div>
-          </div>
+          </button>
         </div>
       </div>
-    </template>
+
+      <!-- RIGHT: Chat -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <template v-if="chatBooking && supplier">
+          <SupplierChat
+            :booking-id="chatBooking.id"
+            :supplier-name="supplier.name"
+            :event-name="chatBooking.event?.name ?? ''"
+            :inline="true"
+          />
+        </template>
+
+        <!-- Empty state -->
+        <div v-else class="flex-1 flex flex-col items-center justify-center text-center px-8">
+          <div class="w-16 h-16 rounded-2xl bg-revel-gold/5 border border-revel-gold/10 flex items-center justify-center mb-4">
+            <svg class="w-8 h-8 text-revel-gold/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+          </div>
+          <p class="text-white/40 text-sm font-medium">Selecciona un evento</p>
+          <p class="text-white/20 text-xs mt-1">Elige un evento de la lista para chatear con el proveedor</p>
+        </div>
+      </div>
+    </div>
 
     <!-- Modal agregar/editar booking -->
     <UiModal v-model="showBookingModal" :title="editingBookingId ? 'Editar evento asignado' : 'Asignar evento al proveedor'">
       <div class="space-y-4">
         <div v-if="!editingBookingId">
           <label class="block text-xs font-semibold text-white/50 uppercase tracking-wide mb-1.5">Evento *</label>
-          <select
-            v-model="bookingForm.eventId"
-            class="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-sm focus:outline-none focus:border-revel-gold/40 transition-all"
-          >
+          <select v-model="bookingForm.eventId"
+            class="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-sm focus:outline-none focus:border-revel-gold/40 transition-all">
             <option value="" disabled class="bg-revel-black">Selecciona un evento</option>
             <option v-for="ev in events" :key="ev.id" :value="ev.id" class="bg-revel-black">
               {{ ev.name }} — {{ formatEventDate(ev.date) }}
@@ -194,21 +200,15 @@
 
         <div>
           <label class="block text-xs font-semibold text-white/50 uppercase tracking-wide mb-1.5">Fecha de asistencia *</label>
-          <input
-            v-model="bookingForm.eventDate"
-            type="date"
-            class="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-sm focus:outline-none focus:border-revel-gold/40 transition-all"
-          />
+          <input v-model="bookingForm.eventDate" type="date"
+            class="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-sm focus:outline-none focus:border-revel-gold/40 transition-all"/>
         </div>
 
         <div>
           <label class="block text-xs font-semibold text-white/50 uppercase tracking-wide mb-1.5">Costo del servicio *</label>
           <div class="flex gap-2">
-            <input
-              v-model.number="bookingForm.cost"
-              type="number" min="0" step="0.01" placeholder="0.00"
-              class="flex-1 px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-sm focus:outline-none focus:border-revel-gold/40 transition-all"
-            />
+            <input v-model.number="bookingForm.cost" type="number" min="0" step="0.01" placeholder="0.00"
+              class="flex-1 px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-sm focus:outline-none focus:border-revel-gold/40 transition-all"/>
             <select v-model="bookingForm.currency"
               class="w-24 px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-sm focus:outline-none focus:border-revel-gold/40 transition-all">
               <option class="bg-revel-black">MXN</option>
@@ -273,15 +273,6 @@
       :loading="deletingBooking"
       @confirm="deleteBooking"
     />
-
-    <!-- Chat panel -->
-    <SupplierChat
-      v-if="chatBooking"
-      v-model="showChat"
-      :booking-id="chatBooking.id"
-      :supplier-name="supplier?.name ?? ''"
-      :event-name="chatBooking.event?.name ?? ''"
-    />
   </div>
 </template>
 
@@ -319,12 +310,10 @@ const deletingBooking = ref(false)
 const bookingToDelete = ref<SupplierBooking | null>(null)
 
 // Chat
-const showChat = ref(false)
 const chatBooking = ref<SupplierBooking | null>(null)
 
 function openChat(b: SupplierBooking) {
   chatBooking.value = b
-  showChat.value = true
 }
 
 const totalFormatted = computed(() => {
@@ -347,10 +336,10 @@ function categoryColor(cat: string) {
 
 function categoryIcon(cat: string) {
   const icons: Record<string, string> = {
-    Fotografía: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`,
-    Música: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>`,
+    Fotografía: `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>`,
+    Música: `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/></svg>`,
   }
-  return icons[cat] ?? `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/></svg>`
+  return icons[cat] ?? `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/></svg>`
 }
 
 function dayOf(d: string) { return new Date(d).getUTCDate() }
@@ -433,6 +422,7 @@ async function deleteBooking() {
   try {
     await del(`/api/supplier-bookings/${bookingToDelete.value.id}`)
     supplier.value!.bookings = supplier.value!.bookings!.filter(b => b.id !== bookingToDelete.value!.id)
+    if (chatBooking.value?.id === bookingToDelete.value.id) chatBooking.value = null
     ui.success('Eliminado', 'Evento quitado del proveedor')
     showDeleteModal.value = false
   } catch {
@@ -472,6 +462,9 @@ onMounted(async () => {
     events.value = eRes.data.map(e => ({ id: e.id, name: e.name, date: e.date }))
     supplierUsers.value = uRes.data.filter(u => u.role === 'SUPPLIER').map(u => ({ id: u.id, name: u.name, email: u.email }))
     linkUserId.value = supplier.value.supplierUserId ?? ''
+
+    // Auto-seleccionar primer booking si hay alguno
+    if (sRes.data.bookings?.length) chatBooking.value = sRes.data.bookings[0]
   } catch {
     ui.error('Error', 'No se pudo cargar el proveedor')
   } finally {
