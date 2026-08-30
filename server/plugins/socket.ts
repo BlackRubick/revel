@@ -1,11 +1,9 @@
 import { Server as SocketIOServer } from 'socket.io'
 
 export default defineNitroPlugin((nitroApp) => {
-  const storage = useStorage('redis') as unknown
-
   const io = new SocketIOServer({
     cors: {
-      origin: process.env.APP_URL || 'http://localhost:3000',
+      origin: '*',
       methods: ['GET', 'POST'],
     },
   })

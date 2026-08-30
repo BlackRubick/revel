@@ -1,0 +1,8 @@
+- generic [ref=f6e5]:
+  - link "Proveedores" [ref=f6e7] [cursor=pointer]:
+    - /url: /dashboard/suppliers
+  - generic [ref=f6e14]:
+    - paragraph [ref=f6e17]: Eventos asignados
+    - generic [ref=f6e24]:
+      - paragraph [ref=f6e28]: Selecciona un evento
+      - paragraph [ref=f6e29]: Elige un evento para chatear con el proveedor

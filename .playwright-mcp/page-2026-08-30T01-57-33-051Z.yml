@@ -1,0 +1,20 @@
+- generic [ref=f2e4]:
+  - link "R Rével" [ref=f2e5] [cursor=pointer]:
+    - /url: /
+    - generic [ref=f2e6]: R
+    - generic [ref=f2e8]: Rével
+  - generic [ref=f2e10]:
+    - generic [ref=f2e11]:
+      - heading "Rével" [level=1] [ref=f2e12]
+      - paragraph [ref=f2e13]: Bienvenido de vuelta
+    - generic [ref=f2e17]:
+      - generic [ref=f2e18]:
+        - generic [ref=f2e19]:
+          - generic [ref=f2e20]: Correo electrónico *
+          - textbox "hola@revel.mx" [ref=f2e25]
+        - generic [ref=f2e26]:
+          - generic [ref=f2e27]: Contraseña *
+          - generic [ref=f2e28]:
+            - textbox "••••••••" [ref=f2e32]
+            - button [ref=f2e34]
+      - button "Iniciar sesión" [ref=f2e37]

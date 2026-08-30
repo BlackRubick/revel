@@ -373,14 +373,21 @@ model EventStage {
 }
 
 model ChatMessage {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   bookingId String
   senderId  String
-  message   String   @db.Text
-  createdAt DateTime @default(now())
+  message   String    @db.Text
+  fileUrl   String?   @db.Text
+  fileType  String?
+  fileName  String?
+  replyToId String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
 
   booking SupplierBooking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   sender  User            @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo ChatMessage?    @relation("ChatReply", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies ChatMessage[]   @relation("ChatReply")
 
   @@map("chat_messages")
 }

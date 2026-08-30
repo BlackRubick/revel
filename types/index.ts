@@ -232,13 +232,31 @@ export interface EventStage {
   updatedAt: string
 }
 
+export interface ChatMessageReply {
+  id: string
+  message: string
+  sender?: Pick<User, 'id' | 'name' | 'role'>
+}
+
 export interface ChatMessage {
   id: string
   bookingId: string
   senderId: string
   message: string
+  fileUrl?: string | null
+  fileType?: 'image' | 'video' | 'file' | null
+  fileName?: string | null
+  replyToId?: string | null
+  replyTo?: ChatMessageReply | null
+  readAt?: string | null
   createdAt: string
   sender?: Pick<User, 'id' | 'name' | 'role' | 'avatar'>
+}
+
+export interface ChatPresence {
+  lastSeen: string
+  isTyping: boolean
+  isTypingFresh: boolean
 }
 
 export interface DashboardStats {
