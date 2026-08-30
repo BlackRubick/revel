@@ -27,3 +27,4 @@ prisma/migrations/
 # misc
 .cache
 .temp
+.playwright-mcp
