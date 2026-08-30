@@ -1,4 +1,3 @@
-import { prisma } from '~/server/utils/prisma'
 import { registerSSE, unregisterSSE } from '~/server/utils/chatSSE'
 import { verifyToken } from '~/utils/jwt'
 
@@ -18,19 +17,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, message: 'Token inválido' })
   }
 
-  const booking = await prisma.supplierBooking.findUnique({
-    where: { id: bookingId },
-    include: { supplier: { select: { supplierUserId: true } } },
-  })
-
-  if (!booking) throw createError({ statusCode: 404, message: 'Booking no encontrado' })
-
-  if (user.role === 'SUPPLIER') {
-    if (booking.supplier.supplierUserId !== user.userId)
-      throw createError({ statusCode: 403, message: 'Sin acceso' })
-  } else if (!['ADMIN', 'ORGANIZER', 'ENCARGADO'].includes(user.role)) {
-    throw createError({ statusCode: 403, message: 'Sin permisos' })
-  }
+  const { checkChatAccess } = await import('~/server/utils/chatAccess')
+  await checkChatAccess(bookingId, user)
 
   const res = event.node.res
   const req = event.node.req

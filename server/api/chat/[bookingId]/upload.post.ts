@@ -1,5 +1,5 @@
 import { requireAuth } from '~/server/utils/auth'
-import { prisma } from '~/server/utils/prisma'
+import { checkChatAccess } from '~/server/utils/chatAccess'
 import { v2 as cloudinary } from 'cloudinary'
 
 export default defineEventHandler(async (event) => {
@@ -7,17 +7,7 @@ export default defineEventHandler(async (event) => {
   const { bookingId } = getRouterParams(event)
   const config = useRuntimeConfig()
 
-  const booking = await prisma.supplierBooking.findUnique({
-    where: { id: bookingId },
-    include: { supplier: { select: { supplierUserId: true } } },
-  })
-  if (!booking) throw createError({ statusCode: 404, message: 'Booking no encontrado' })
-  if (user.role === 'SUPPLIER') {
-    if (booking.supplier.supplierUserId !== user.userId)
-      throw createError({ statusCode: 403, message: 'Sin acceso' })
-  } else if (!['ADMIN', 'ORGANIZER', 'ENCARGADO'].includes(user.role)) {
-    throw createError({ statusCode: 403, message: 'Sin permisos' })
-  }
+  await checkChatAccess(bookingId, user)
 
   const parts = await readMultipartFormData(event)
   const filePart = parts?.find(p => p.name === 'file')
