@@ -1,6 +1,5 @@
 <template>
-  <!-- Sin márgenes negativos. Height descuenta header + padding top + padding bottom del main -->
-  <div class="flex flex-col overflow-hidden h-[calc(100dvh-6rem)] lg:h-[calc(100dvh-7rem)]">
+  <div class="flex-1 flex flex-col overflow-hidden">
 
     <!-- Top bar -->
     <div class="flex-shrink-0 px-4 lg:px-6 py-3 border-b border-white/8 bg-revel-gray-dark/80 flex items-center gap-3 flex-wrap min-w-0">
@@ -256,7 +255,7 @@
 import type { Supplier, SupplierBooking, Event, BookingStatus, User } from '~/types'
 import { useUiStore } from '~/stores/ui'
 
-definePageMeta({ middleware: 'auth' })
+definePageMeta({ layout: 'dashboard-full', middleware: ['auth', 'role'] })
 
 const route = useRoute()
 const ui = useUiStore()
