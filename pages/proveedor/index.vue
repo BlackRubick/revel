@@ -1,18 +1,32 @@
 <template>
-  <div class="min-h-screen bg-revel-black">
+  <div class="h-screen flex flex-col bg-revel-black overflow-hidden">
+
     <!-- Header -->
-    <header class="border-b border-white/6 bg-revel-gray-dark px-6 py-4 flex items-center justify-between">
+    <header class="flex-shrink-0 border-b border-white/6 bg-revel-gray-dark px-5 py-3 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-gold-gradient flex items-center justify-center shadow-gold">
-          <span class="font-display font-bold text-revel-black text-sm">R</span>
+        <!-- Back button on mobile when chat is open -->
+        <button
+          v-if="mobileShowChat"
+          class="md:hidden w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-all mr-1"
+          @click="mobileShowChat = false"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <div class="w-7 h-7 rounded-lg bg-gold-gradient flex items-center justify-center shadow-gold">
+          <span class="font-display font-bold text-revel-black text-xs">R</span>
         </div>
-        <span class="font-display text-lg font-semibold text-white">Rével</span>
-        <span class="text-white/25 text-sm">/ Portal Proveedor</span>
+        <span class="font-display text-base font-semibold text-white">Rével</span>
+        <span class="hidden sm:inline text-white/25 text-sm">/ Portal Proveedor</span>
       </div>
       <div class="flex items-center gap-3">
-        <div class="text-right">
-          <p class="text-sm font-medium text-white">{{ auth.user?.name }}</p>
-          <p class="text-xs text-white/40">Proveedor</p>
+        <!-- Unread badge total -->
+        <div v-if="totalUnread > 0" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/15 border border-red-500/25">
+          <span class="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse"/>
+          <span class="text-xs text-red-400 font-medium">{{ totalUnread }} sin leer</span>
+        </div>
+        <div class="text-right hidden sm:block">
+          <p class="text-sm font-medium text-white leading-none">{{ auth.user?.name }}</p>
+          <p class="text-xs text-white/40 mt-0.5">{{ profile?.category ?? 'Proveedor' }}</p>
         </div>
         <button
           class="px-3 py-1.5 rounded-lg border border-white/10 text-xs text-red-400/70 hover:text-red-400 hover:border-red-500/30 transition-all"
@@ -23,136 +37,131 @@
       </div>
     </header>
 
-    <div class="max-w-5xl mx-auto px-6 py-8">
-      <!-- Perfil del proveedor -->
-      <div v-if="profile" class="card-revel p-5 mb-6 flex items-start gap-4">
-        <div
-          class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-white/70"
-          :style="{ background: categoryColor(profile.category) }"
-        >
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+    <!-- Body: sidebar + chat -->
+    <div class="flex-1 flex overflow-hidden">
+
+      <!-- LEFT SIDEBAR -->
+      <div
+        class="flex-shrink-0 border-r border-white/8 flex flex-col overflow-hidden bg-revel-gray-dark/50"
+        :class="mobileShowChat ? 'hidden md:flex md:w-80' : 'flex w-full md:w-80'"
+      >
+        <!-- Profile compact -->
+        <div v-if="profile" class="px-4 py-4 border-b border-white/6 flex-shrink-0">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-white/80"
+              :style="{ background: categoryColor(profile.category) }"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+              </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-semibold text-white text-sm truncate">{{ profile.name }}</p>
+              <p class="text-xs text-white/40 truncate">{{ profile.category }}</p>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <p class="text-sm font-bold text-revel-gold">{{ totalFormatted }}</p>
+              <p class="text-[10px] text-white/30">{{ bookings.length }} evento{{ bookings.length !== 1 ? 's' : '' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sin perfil -->
+        <div v-else-if="!loading" class="px-4 py-6 text-center border-b border-white/6 flex-shrink-0">
+          <p class="text-white/50 text-xs">Sin perfil vinculado</p>
+          <p class="text-white/25 text-[10px] mt-0.5">Contacta al administrador</p>
+        </div>
+
+        <!-- Conversaciones header -->
+        <div class="px-4 py-3 flex items-center justify-between flex-shrink-0">
+          <p class="text-xs font-semibold text-white/40 uppercase tracking-wider">Conversaciones</p>
+          <button
+            v-if="profile"
+            class="flex items-center gap-1 px-2 py-1 rounded-lg bg-revel-gold/10 border border-revel-gold/20 text-revel-gold text-xs font-medium hover:bg-revel-gold/15 transition-all"
+            @click="openAddModal"
+          >
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Agregar
+          </button>
+        </div>
+
+        <!-- Loading skeleton -->
+        <div v-if="loading" class="px-3 space-y-2 flex-1">
+          <div v-for="i in 3" :key="i" class="h-16 shimmer rounded-xl"/>
+        </div>
+
+        <!-- Sin bookings -->
+        <div v-else-if="!bookings.length" class="flex-1 flex flex-col items-center justify-center px-4 py-8 text-center">
+          <svg class="w-8 h-8 text-white/15 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
           </svg>
+          <p class="text-white/40 text-xs">No tienes eventos asignados.</p>
         </div>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-3 flex-wrap">
-            <h1 class="font-display text-xl font-bold text-white">{{ profile.name }}</h1>
-            <span class="px-2 py-0.5 rounded-md bg-revel-gold/10 text-revel-gold text-xs font-medium border border-revel-gold/20">
-              {{ profile.category }}
-            </span>
-          </div>
-          <div class="flex flex-wrap gap-4 mt-2">
-            <span v-if="profile.phone" class="flex items-center gap-1.5 text-xs text-white/50">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.948V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-              </svg>
-              {{ profile.phone }}
-            </span>
-            <span v-if="profile.email" class="flex items-center gap-1.5 text-xs text-white/50">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-              </svg>
-              {{ profile.email }}
-            </span>
-          </div>
+
+        <!-- Lista de bookings -->
+        <div v-else class="flex-1 overflow-y-auto px-3 pb-3 space-y-1">
+          <button
+            v-for="b in bookings"
+            :key="b.id"
+            class="w-full text-left px-3 py-3 rounded-xl transition-all group relative"
+            :class="chatBooking?.id === b.id
+              ? 'bg-revel-gold/10 border border-revel-gold/25'
+              : 'hover:bg-white/[0.04] border border-transparent'"
+            @click="openChat(b)"
+          >
+            <div class="flex items-start gap-2.5">
+              <!-- Fecha compacta -->
+              <div class="flex-shrink-0 w-10 text-center pt-0.5">
+                <p class="text-base font-bold leading-none" :class="chatBooking?.id === b.id ? 'text-revel-gold' : 'text-white/70'">{{ dayOf(b.eventDate) }}</p>
+                <p class="text-[9px] text-white/30 uppercase tracking-wide">{{ monthOf(b.eventDate) }}</p>
+              </div>
+
+              <!-- Info -->
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <p class="text-sm font-medium text-white truncate flex-1">{{ b.event?.name ?? 'Evento' }}</p>
+                  <!-- Unread badge -->
+                  <span
+                    v-if="unreadCounts[b.id]"
+                    class="flex-shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center"
+                  >{{ unreadCounts[b.id] > 9 ? '9+' : unreadCounts[b.id] }}</span>
+                </div>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <span :class="statusClass(b.status)" class="inline-flex items-center px-1.5 py-px rounded text-[9px] font-medium">
+                    {{ statusLabel(b.status) }}
+                  </span>
+                  <span class="text-[10px] text-white/30">{{ formatCost(b.cost) }} {{ b.currency }}</span>
+                </div>
+                <p v-if="b.event?.venue" class="text-[10px] text-white/25 mt-0.5 truncate">{{ b.event.venue }}</p>
+              </div>
+            </div>
+          </button>
         </div>
-        <!-- Stats rápidos -->
-        <div class="flex gap-4 flex-shrink-0">
-          <div class="text-center">
-            <p class="text-xl font-bold text-white">{{ bookings.length }}</p>
-            <p class="text-xs text-white/40">Eventos</p>
-          </div>
-          <div class="text-center">
-            <p class="text-xl font-bold text-revel-gold">{{ totalFormatted }}</p>
-            <p class="text-xs text-white/40">Total</p>
-          </div>
-        </div>
       </div>
 
-      <!-- Sin perfil vinculado -->
-      <div v-else-if="!loading" class="card-revel p-8 text-center mb-6">
-        <svg class="w-10 h-10 text-white/20 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <p class="text-white/60 text-sm">Tu usuario aún no está vinculado a un perfil de proveedor.</p>
-        <p class="text-white/30 text-xs mt-1">Contacta al administrador para que te asigne tu perfil.</p>
-      </div>
-
-      <!-- Header de agenda -->
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <h2 class="text-lg font-semibold text-white">Mi agenda</h2>
-          <p class="text-xs text-white/40 mt-0.5">Eventos en los que participas</p>
-        </div>
-        <button
-          v-if="profile"
-          class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-revel-gold/10 border border-revel-gold/20 text-revel-gold text-sm font-medium hover:bg-revel-gold/15 transition-all"
-          @click="openAddModal"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-          </svg>
-          Agregar fecha
-        </button>
-      </div>
-
-      <!-- Loading -->
-      <div v-if="loading" class="space-y-3">
-        <div v-for="i in 3" :key="i" class="h-24 shimmer rounded-2xl"/>
-      </div>
-
-      <!-- Sin bookings -->
-      <div v-else-if="!bookings.length" class="card-revel p-8 text-center">
-        <svg class="w-10 h-10 text-white/20 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-        </svg>
-        <p class="text-white/60 text-sm">No tienes eventos asignados aún.</p>
-      </div>
-
-      <!-- Lista de bookings -->
-      <div v-else class="space-y-3">
-        <div
-          v-for="b in bookings"
-          :key="b.id"
-          class="card-revel p-5 flex items-center gap-4 group hover:border-white/12 transition-all"
-        >
-          <!-- Fecha -->
-          <div class="flex-shrink-0 w-14 text-center">
-            <p class="text-2xl font-bold text-white leading-none">{{ dayOf(b.eventDate) }}</p>
-            <p class="text-xs text-white/40 uppercase tracking-wide mt-0.5">{{ monthOf(b.eventDate) }}</p>
-            <p class="text-xs text-white/25">{{ yearOf(b.eventDate) }}</p>
-          </div>
-
-          <div class="w-px h-12 bg-white/8 flex-shrink-0"/>
-
-          <!-- Evento -->
-          <div class="flex-1 min-w-0">
-            <p class="font-semibold text-white text-sm truncate">{{ b.event?.name }}</p>
-            <p class="text-xs text-white/50 mt-0.5 truncate">
-              <svg class="w-3 h-3 inline mr-1 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-              </svg>
-              {{ b.event?.venue }}
-            </p>
-            <p v-if="b.notes" class="text-xs text-white/35 mt-1 truncate">{{ b.notes }}</p>
-          </div>
-
-          <!-- Estado y costo -->
-          <div class="flex-shrink-0 text-right">
-            <p class="text-lg font-bold text-revel-gold">${{ formatCost(b.cost) }} <span class="text-xs font-normal text-white/40">{{ b.currency }}</span></p>
-            <span :class="statusClass(b.status)" class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium mt-1">
-              {{ statusLabel(b.status) }}
-            </span>
-          </div>
-
-          <!-- Mi estado (proveedor) -->
-          <div class="flex-shrink-0">
+      <!-- RIGHT: Chat area -->
+      <div
+        class="flex-1 flex flex-col overflow-hidden"
+        :class="mobileShowChat ? 'flex' : 'hidden md:flex'"
+      >
+        <!-- Chat inline -->
+        <template v-if="chatBooking">
+          <!-- Booking actions bar -->
+          <div class="flex-shrink-0 px-4 py-2 border-b border-white/6 bg-revel-gray-dark/30 flex items-center gap-3">
+            <div class="flex-1 flex items-center gap-3 min-w-0">
+              <span :class="supplierStatusClass(chatBooking.supplierStatus ?? 'PENDING')" class="text-xs px-2.5 py-1 rounded-xl border font-medium flex-shrink-0">
+                {{ supplierStatusLabel(chatBooking.supplierStatus ?? 'PENDING') }}
+              </span>
+              <p class="text-xs text-white/30 truncate">{{ chatBooking.event?.venue }}</p>
+            </div>
             <select
-              :value="b.supplierStatus"
-              class="px-2.5 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-xs focus:outline-none focus:border-revel-gold/40 transition-all cursor-pointer"
-              :class="supplierStatusClass(b.supplierStatus)"
-              @change="updateSupplierStatus(b, ($event.target as HTMLSelectElement).value)"
+              :value="chatBooking.supplierStatus"
+              class="px-2.5 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-xs focus:outline-none focus:border-revel-gold/40 transition-all cursor-pointer flex-shrink-0"
+              :class="supplierStatusClass(chatBooking.supplierStatus ?? 'PENDING')"
+              @change="updateSupplierStatus(chatBooking!, ($event.target as HTMLSelectElement).value)"
             >
               <option value="PENDING" class="bg-revel-black text-white">Sin confirmar</option>
               <option value="CONFIRMED" class="bg-revel-black text-white">Confirmado</option>
@@ -161,46 +170,41 @@
               <option value="ON_THE_WAY" class="bg-revel-black text-white">En camino</option>
               <option value="AT_VENUE" class="bg-revel-black text-white">En el lugar</option>
             </select>
-          </div>
-
-          <!-- Acciones -->
-          <div class="flex-shrink-0 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
-              class="p-1.5 rounded-lg bg-white/5 hover:bg-revel-gold/10 text-white/50 hover:text-revel-gold transition-all"
-              title="Chat con organizador"
-              @click="openChat(b)"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-              </svg>
-            </button>
-            <button
-              class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all"
+              class="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-all flex-shrink-0"
               title="Editar"
-              @click="openEditModal(b)"
+              @click="openEditModal(chatBooking!)"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
               </svg>
             </button>
           </div>
+
+          <SupplierChat
+            :booking-id="chatBooking.id"
+            :supplier-name="`Organizador · ${chatBooking.event?.name ?? 'evento'}`"
+            :event-name="chatBooking.event?.name ?? ''"
+            :inline="true"
+          />
+        </template>
+
+        <!-- Empty state -->
+        <div v-else class="flex-1 flex flex-col items-center justify-center text-center px-8">
+          <div class="w-16 h-16 rounded-2xl bg-revel-gold/5 border border-revel-gold/10 flex items-center justify-center mb-4">
+            <svg class="w-8 h-8 text-revel-gold/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+          </div>
+          <p class="text-white/40 text-sm font-medium">Selecciona una conversación</p>
+          <p class="text-white/20 text-xs mt-1">Elige un evento de la lista para chatear con el organizador</p>
         </div>
       </div>
     </div>
 
-    <!-- Chat panel -->
-    <SupplierChat
-      v-if="chatBooking"
-      v-model="showChat"
-      :booking-id="chatBooking.id"
-      :supplier-name="profile?.name ?? ''"
-      :event-name="chatBooking.event?.name ?? ''"
-    />
-
     <!-- Modal agregar/editar booking -->
     <UiModal v-model="showModal" :title="editingId ? 'Editar evento' : 'Agregar fecha de evento'">
       <div class="space-y-4">
-        <!-- Evento (solo al crear) -->
         <div v-if="!editingId">
           <label class="block text-xs font-semibold text-white/50 uppercase tracking-wide mb-1.5">Evento *</label>
           <select
@@ -214,7 +218,6 @@
           </select>
         </div>
 
-        <!-- Fecha de asistencia -->
         <div>
           <label class="block text-xs font-semibold text-white/50 uppercase tracking-wide mb-1.5">Fecha que estarás presente *</label>
           <input
@@ -224,7 +227,6 @@
           />
         </div>
 
-        <!-- Costo -->
         <div>
           <label class="block text-xs font-semibold text-white/50 uppercase tracking-wide mb-1.5">Costo del servicio *</label>
           <div class="flex gap-2">
@@ -246,7 +248,6 @@
           </div>
         </div>
 
-        <!-- Estado -->
         <div>
           <label class="block text-xs font-semibold text-white/50 uppercase tracking-wide mb-1.5">Estado</label>
           <select
@@ -259,7 +260,6 @@
           </select>
         </div>
 
-        <!-- Notas -->
         <div>
           <label class="block text-xs font-semibold text-white/50 uppercase tracking-wide mb-1.5">Notas (opcional)</label>
           <textarea
@@ -306,13 +306,53 @@ const saving = ref(false)
 const editingId = ref('')
 
 // Chat
-const showChat = ref(false)
 const chatBooking = ref<SupplierBooking | null>(null)
+const mobileShowChat = ref(false)
+const unreadCounts = ref<Record<string, number>>({})
+let unreadTimer: ReturnType<typeof setInterval> | null = null
+let unreadInitialized = false
 
 function openChat(b: SupplierBooking) {
   chatBooking.value = b
-  showChat.value = true
+  mobileShowChat.value = true
+  if (unreadCounts.value[b.id]) unreadCounts.value[b.id] = 0
 }
+
+async function fetchUnread() {
+  try {
+    const res = await get<{ success: boolean; data: { bookingId: string; unreadCount: number }[] }>('/api/chat/unread')
+    const newCounts: Record<string, number> = {}
+    let hasNew = false
+
+    for (const item of res.data) {
+      newCounts[item.bookingId] = item.unreadCount
+      if (unreadInitialized && item.bookingId !== chatBooking.value?.id) {
+        const prev = unreadCounts.value[item.bookingId] ?? 0
+        if (item.unreadCount > prev) hasNew = true
+      }
+    }
+
+    unreadCounts.value = newCounts
+    unreadInitialized = true
+
+    if (hasNew) notifyNewMessage()
+  } catch { /* silent */ }
+}
+
+function notifyNewMessage() {
+  if (typeof window === 'undefined') return
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('¡Nuevo mensaje!', {
+      body: 'Tienes mensajes nuevos de un organizador',
+      icon: '/favicon.ico',
+      tag: 'revel-chat',
+      renotify: true,
+    })
+  }
+  if ('vibrate' in navigator) navigator.vibrate([200, 100, 200])
+}
+
+const totalUnread = computed(() => Object.values(unreadCounts.value).reduce((a, b) => a + b, 0))
 
 const emptyForm = () => ({ eventId: '', eventDate: '', cost: 0, currency: 'MXN', status: 'PENDING' as BookingStatus, notes: '' })
 const form = reactive(emptyForm())
@@ -337,7 +377,6 @@ function categoryColor(cat: string) {
 
 function dayOf(d: string) { return new Date(d).getUTCDate() }
 function monthOf(d: string) { return new Date(d).toLocaleString('es-MX', { month: 'short', timeZone: 'UTC' }) }
-function yearOf(d: string) { return new Date(d).getUTCFullYear() }
 function formatCost(c: number) { return Number(c).toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }
 function formatEventDate(d: string) { return new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }) }
 
@@ -352,7 +391,7 @@ function statusLabel(s: BookingStatus) {
   return { CONFIRMED: 'Confirmado', PENDING: 'Pendiente', CANCELLED: 'Cancelado' }[s] ?? s
 }
 
-function supplierStatusClass(s: SupplierStatusValue | string) {
+function supplierStatusClass(s: string) {
   const map: Record<string, string> = {
     PENDING:    'text-white/40 border-white/10',
     CONFIRMED:  'text-blue-400 border-blue-500/30',
@@ -362,6 +401,18 @@ function supplierStatusClass(s: SupplierStatusValue | string) {
     AT_VENUE:   'text-revel-gold border-revel-gold/30',
   }
   return map[s] ?? ''
+}
+
+function supplierStatusLabel(s: string) {
+  const map: Record<string, string> = {
+    PENDING: 'Sin confirmar',
+    CONFIRMED: 'Confirmado',
+    PREPARING: 'Preparando',
+    READY: 'Listo',
+    ON_THE_WAY: 'En camino',
+    AT_VENUE: 'En el lugar',
+  }
+  return map[s] ?? s
 }
 
 async function updateSupplierStatus(b: SupplierBooking, newStatus: string) {
@@ -432,7 +483,23 @@ async function handleLogout() {
   await doLogout()
 }
 
+// Actualizar título de pestaña
+watch(totalUnread, (count) => {
+  if (typeof document !== 'undefined') {
+    document.title = count > 0 ? `(${count}) Rével` : 'Rével'
+  }
+})
+
+// Limpiar badge al abrir chat
+watch(chatBooking, (b) => {
+  if (b) unreadCounts.value[b.id] = 0
+})
+
 onMounted(async () => {
+  if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission()
+  }
+
   try {
     const [bRes, eRes, meRes] = await Promise.all([
       get<{ success: boolean; data: SupplierBooking[] }>('/api/supplier-bookings'),
@@ -442,10 +509,23 @@ onMounted(async () => {
     bookings.value = bRes.data
     events.value = (eRes as { data: Event[] }).data.map(e => ({ id: e.id, name: e.name, date: e.date }))
     profile.value = meRes.data
-  } catch (e) {
+
+    // Abrir el primer booking con mensajes automáticamente en desktop
+    if (bRes.data.length && typeof window !== 'undefined' && window.innerWidth >= 768) {
+      chatBooking.value = bRes.data[0]
+    }
+  } catch {
     ui.error('Error', 'No se pudo cargar tu información')
   } finally {
     loading.value = false
   }
+
+  await fetchUnread()
+  unreadTimer = setInterval(fetchUnread, 8000)
+})
+
+onUnmounted(() => {
+  if (unreadTimer) clearInterval(unreadTimer)
+  if (typeof document !== 'undefined') document.title = 'Rével'
 })
 </script>

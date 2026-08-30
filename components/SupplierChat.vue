@@ -1,13 +1,17 @@
 <template>
-  <Teleport to="body">
+  <Teleport to="body" :disabled="inline">
+    <!-- Backdrop (panel mode only) -->
     <Transition name="chat-overlay">
-      <div v-if="modelValue" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" @click="$emit('update:modelValue', false)" />
+      <div v-if="!inline && modelValue" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" @click="$emit('update:modelValue', false)" />
     </Transition>
 
-    <Transition name="chat-panel">
+    <Transition :name="inline ? '' : 'chat-panel'">
       <div
-        v-if="modelValue"
-        class="fixed right-0 top-0 bottom-0 z-50 w-full max-w-md flex flex-col bg-revel-gray-dark border-l border-white/8 shadow-2xl"
+        v-if="inline || modelValue"
+        class="flex flex-col bg-revel-gray-dark"
+        :class="inline
+          ? 'h-full'
+          : 'fixed right-0 top-0 bottom-0 z-50 w-full max-w-md border-l border-white/8 shadow-2xl'"
       >
         <!-- Header -->
         <div class="flex items-center gap-3 px-5 py-4 border-b border-white/8 flex-shrink-0">
@@ -23,7 +27,11 @@
               </p>
             </div>
           </div>
-          <button class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all flex-shrink-0" @click="$emit('update:modelValue', false)">
+          <button
+            v-if="!inline"
+            class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all flex-shrink-0"
+            @click="$emit('update:modelValue', false)"
+          >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
@@ -137,13 +145,10 @@
         <Transition name="reply-bar">
           <div v-if="pendingFile" class="px-4 pt-2 pb-0 flex-shrink-0">
             <div class="flex items-center gap-3 px-3 py-2 rounded-xl bg-white/[0.05] border border-white/10 border-b-0 rounded-b-none">
-              <!-- Image thumb -->
               <img v-if="pendingFile.type === 'image'" :src="pendingFile.preview" class="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
-              <!-- Video icon -->
               <div v-else-if="pendingFile.type === 'video'" class="w-10 h-10 rounded-lg bg-revel-gold/10 flex items-center justify-center flex-shrink-0">
                 <svg class="w-5 h-5 text-revel-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               </div>
-              <!-- File icon -->
               <div v-else class="w-10 h-10 rounded-lg bg-revel-gold/10 flex items-center justify-center flex-shrink-0">
                 <svg class="w-5 h-5 text-revel-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
               </div>
@@ -178,10 +183,8 @@
           class="px-4 py-3 flex-shrink-0 border-white/8"
           :class="pendingFile || replyTo ? 'border-t pt-2 rounded-t-none' : 'border-t'"
         >
-          <!-- Hidden file input -->
           <input ref="fileInputEl" type="file" accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar" class="hidden" @change="onFileSelected" />
           <div class="flex gap-2">
-            <!-- Attachment button -->
             <button
               class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/70"
               :disabled="uploading"
@@ -224,10 +227,11 @@ import type { ChatMessage, ChatPresence } from '~/types'
 import { useAuthStore } from '~/stores/auth'
 
 const props = defineProps<{
-  modelValue: boolean
+  modelValue?: boolean
   bookingId: string
   supplierName: string
   eventName: string
+  inline?: boolean
 }>()
 
 defineEmits<{ (e: 'update:modelValue', v: boolean): void }>()
@@ -348,7 +352,6 @@ async function sendPresence(isTyping: boolean) {
 
 function handleTyping() {
   const now = Date.now()
-  // Refrescar typing cada 3s para que el servidor no lo expire (ventana de 5s)
   if (now - lastPresenceSentAt > 3000) {
     lastPresenceSentAt = now
     sendPresence(true)
@@ -483,27 +486,54 @@ async function scrollToBottom() {
   if (messagesEl.value) messagesEl.value.scrollTop = messagesEl.value.scrollHeight
 }
 
-watch(() => props.modelValue, async (open) => {
-  if (open) {
-    await loadMessages()
-    connectSSE()
-    await connect()
-    scrollToBottom()
-    startPolling()
-  } else {
-    stopPolling()
-    disconnectSSE()
-    disconnect()
-    replyTo.value = null
-    clearPendingFile()
-  }
-}, { immediate: true })
+function isMineMsg(msg: ChatMessage) { return isMine(msg) }
 
-onUnmounted(() => {
+async function initChat() {
+  historicalMessages.value = []
+  otherPresence.value = null
+  await loadMessages()
+  disconnectSSE()
+  connectSSE()
+  await connect()
+  startPolling()
+}
+
+function cleanupChat() {
   stopPolling()
   disconnectSSE()
+  disconnect()
+  replyTo.value = null
   clearPendingFile()
-  if (typingTimer) clearTimeout(typingTimer)
+  if (typingTimer) { clearTimeout(typingTimer); typingTimer = null; lastPresenceSentAt = 0 }
+}
+
+if (props.inline) {
+  onMounted(() => initChat())
+  watch(() => props.bookingId, async (newId, oldId) => {
+    if (newId === oldId) return
+    cleanupChat()
+    await initChat()
+  })
+} else {
+  watch(() => props.modelValue, async (open) => {
+    if (open) {
+      await loadMessages()
+      connectSSE()
+      await connect()
+      scrollToBottom()
+      startPolling()
+    } else {
+      stopPolling()
+      disconnectSSE()
+      disconnect()
+      replyTo.value = null
+      clearPendingFile()
+    }
+  }, { immediate: true })
+}
+
+onUnmounted(() => {
+  cleanupChat()
 })
 
 watch(allMessages, () => scrollToBottom(), { deep: true })
