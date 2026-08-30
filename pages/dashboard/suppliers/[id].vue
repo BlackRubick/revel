@@ -1,6 +1,6 @@
 <template>
-  <!-- Cancela padding horizontal/bottom del dashboard main. Sin -mt para no tapar el header sticky -->
-  <div class="-mx-4 lg:-mx-6 -mb-4 lg:-mb-6 flex flex-col overflow-hidden h-[calc(100dvh-5rem)] lg:h-[calc(100dvh-5.5rem)]">
+  <!-- Cancela solo el padding bottom del dashboard main. Sin margen horizontal para no tapar el sidebar de navegación -->
+  <div class="-mb-4 lg:-mb-6 flex flex-col overflow-hidden h-[calc(100dvh-5rem)] lg:h-[calc(100dvh-5.5rem)]">
 
     <!-- Top bar -->
     <div class="flex-shrink-0 px-4 lg:px-6 py-3 border-b border-white/8 bg-revel-gray-dark/80 flex items-center gap-3 flex-wrap min-w-0">
