@@ -155,8 +155,19 @@
               <span :class="supplierStatusClass(chatBooking.supplierStatus ?? 'PENDING')" class="text-xs px-2.5 py-1 rounded-xl border font-medium flex-shrink-0">
                 {{ supplierStatusLabel(chatBooking.supplierStatus ?? 'PENDING') }}
               </span>
-              <p class="text-xs text-white/30 truncate">{{ chatBooking.event?.venue }}</p>
+              <p class="text-xs text-white/30 truncate hidden sm:block">{{ chatBooking.event?.venue }}</p>
             </div>
+            <!-- Toggle detalles -->
+            <button
+              class="p-1.5 rounded-lg transition-all flex-shrink-0"
+              :class="showEventDetails ? 'bg-revel-gold/15 text-revel-gold' : 'bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/70'"
+              title="Ver detalles del evento"
+              @click="showEventDetails = !showEventDetails"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </button>
             <select
               :value="chatBooking.supplierStatus"
               class="px-2.5 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-white text-xs focus:outline-none focus:border-revel-gold/40 transition-all cursor-pointer flex-shrink-0"
@@ -180,6 +191,89 @@
               </svg>
             </button>
           </div>
+
+          <!-- Panel de detalles del evento (desplegable) -->
+          <Transition name="event-details">
+            <div v-if="showEventDetails" class="flex-shrink-0 border-b border-white/6 bg-revel-black/40 overflow-hidden">
+              <div class="px-4 py-3 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2.5">
+                <!-- Nombre del evento -->
+                <div class="col-span-2 sm:col-span-3">
+                  <p class="text-[9px] font-semibold text-white/25 uppercase tracking-wider mb-0.5">Evento</p>
+                  <p class="text-sm font-semibold text-white">{{ chatBooking.event?.name ?? '—' }}</p>
+                </div>
+
+                <!-- Fecha de asistencia -->
+                <div>
+                  <p class="text-[9px] font-semibold text-white/25 uppercase tracking-wider mb-0.5">Tu fecha</p>
+                  <div class="flex items-center gap-1.5">
+                    <svg class="w-3 h-3 text-revel-gold/60 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <p class="text-xs text-white/70">{{ formatEventDate(chatBooking.eventDate) }}</p>
+                  </div>
+                </div>
+
+                <!-- Lugar -->
+                <div v-if="chatBooking.event?.venue">
+                  <p class="text-[9px] font-semibold text-white/25 uppercase tracking-wider mb-0.5">Lugar</p>
+                  <div class="flex items-center gap-1.5">
+                    <svg class="w-3 h-3 text-revel-gold/60 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <p class="text-xs text-white/70 truncate">{{ chatBooking.event.venue }}</p>
+                  </div>
+                </div>
+
+                <!-- Tipo de evento -->
+                <div v-if="chatBooking.event?.type">
+                  <p class="text-[9px] font-semibold text-white/25 uppercase tracking-wider mb-0.5">Tipo</p>
+                  <p class="text-xs text-white/70">{{ chatBooking.event.type }}</p>
+                </div>
+
+                <!-- Costo acordado -->
+                <div>
+                  <p class="text-[9px] font-semibold text-white/25 uppercase tracking-wider mb-0.5">Tu pago</p>
+                  <div class="flex items-center gap-1.5">
+                    <svg class="w-3 h-3 text-revel-gold/60 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p class="text-xs text-revel-gold font-semibold">${{ formatCost(chatBooking.cost) }} {{ chatBooking.currency }}</p>
+                  </div>
+                </div>
+
+                <!-- Estado del booking -->
+                <div>
+                  <p class="text-[9px] font-semibold text-white/25 uppercase tracking-wider mb-0.5">Estado</p>
+                  <span :class="statusClass(chatBooking.status)" class="inline-flex items-center px-1.5 py-px rounded text-[9px] font-medium">
+                    {{ statusLabel(chatBooking.status) }}
+                  </span>
+                </div>
+
+                <!-- Dirección del venue -->
+                <div v-if="chatBooking.event?.venueAddress" class="col-span-2 sm:col-span-3">
+                  <p class="text-[9px] font-semibold text-white/25 uppercase tracking-wider mb-0.5">Dirección</p>
+                  <a
+                    v-if="chatBooking.event.venueMapUrl"
+                    :href="chatBooking.event.venueMapUrl"
+                    target="_blank"
+                    class="flex items-center gap-1 text-xs text-blue-400/70 hover:text-blue-400 transition-colors"
+                  >
+                    {{ chatBooking.event.venueAddress }}
+                    <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                  </a>
+                  <p v-else class="text-xs text-white/50">{{ chatBooking.event.venueAddress }}</p>
+                </div>
+
+                <!-- Notas del organizador -->
+                <div v-if="chatBooking.notes" class="col-span-2 sm:col-span-3">
+                  <p class="text-[9px] font-semibold text-white/25 uppercase tracking-wider mb-0.5">Notas del organizador</p>
+                  <p class="text-xs text-white/60 leading-relaxed bg-white/[0.03] border border-white/6 rounded-lg px-3 py-2">{{ chatBooking.notes }}</p>
+                </div>
+              </div>
+            </div>
+          </Transition>
 
           <SupplierChat
             :booking-id="chatBooking.id"
@@ -308,6 +402,7 @@ const editingId = ref('')
 // Chat
 const chatBooking = ref<SupplierBooking | null>(null)
 const mobileShowChat = ref(false)
+const showEventDetails = ref(false)
 const unreadCounts = ref<Record<string, number>>({})
 let unreadTimer: ReturnType<typeof setInterval> | null = null
 let unreadInitialized = false
@@ -490,9 +585,12 @@ watch(totalUnread, (count) => {
   }
 })
 
-// Limpiar badge al abrir chat
+// Limpiar badge y detalles al cambiar de booking
 watch(chatBooking, (b) => {
-  if (b) unreadCounts.value[b.id] = 0
+  if (b) {
+    unreadCounts.value[b.id] = 0
+    showEventDetails.value = false
+  }
 })
 
 onMounted(async () => {
@@ -529,3 +627,14 @@ onUnmounted(() => {
   if (typeof document !== 'undefined') document.title = 'Rével'
 })
 </script>
+
+<style scoped>
+.event-details-enter-active, .event-details-leave-active {
+  transition: max-height 0.25s ease, opacity 0.2s ease;
+  max-height: 400px;
+}
+.event-details-enter-from, .event-details-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+</style>
