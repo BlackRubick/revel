@@ -15,7 +15,10 @@ export default defineEventHandler(async (event) => {
       skip,
       take: limit,
       orderBy: { uploadedAt: 'desc' },
-      include: { guest: { select: { id: true, name: true } } },
+      include: {
+        guest: { select: { id: true, name: true } },
+        _count: { select: { annotations: { where: { status: 'APPROVED' } } } },
+      },
     }),
     prisma.photo.count({ where: { eventId, status: 'APPROVED' } }),
   ])

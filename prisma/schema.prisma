@@ -162,6 +162,7 @@ model Event {
   guests           Guest[]
   tables           EventTable[]
   photos           Photo[]
+  photoAnnotations PhotoAnnotation[]
   videos           Video[]
   messages         GuestMessage[]
   invitations      Invitation[]
@@ -174,14 +175,14 @@ model Event {
 }
 
 model EventTable {
-  id          String @id @default(uuid())
-  eventId     String
-  number      Int
-  name        String
-  capacity    Int    @default(8)
-  shape       String @default("ROUND")
-  positionX   Float  @default(0)
-  positionY   Float  @default(0)
+  id        String @id @default(uuid())
+  eventId   String
+  number    Int
+  name      String
+  capacity  Int    @default(8)
+  shape     String @default("ROUND")
+  positionX Float  @default(0)
+  positionY Float  @default(0)
 
   event  Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   guests Guest[]
@@ -191,23 +192,23 @@ model EventTable {
 }
 
 model Guest {
-  id           String     @id @default(uuid())
-  eventId      String
-  tableId      String?
-  name         String
-  phone        String?
-  email        String?
-  companions   Int        @default(0)
-  rsvpStatus   RSVPStatus @default(PENDING)
-  rsvpAt       DateTime?
-  checkedIn    Boolean    @default(false)
-  checkedInAt  DateTime?
-  notes        String?    @db.Text
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  id          String     @id @default(uuid())
+  eventId     String
+  tableId     String?
+  name        String
+  phone       String?
+  email       String?
+  companions  Int        @default(0)
+  rsvpStatus  RSVPStatus @default(PENDING)
+  rsvpAt      DateTime?
+  checkedIn   Boolean    @default(false)
+  checkedInAt DateTime?
+  notes       String?    @db.Text
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
-  event         Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  table         EventTable? @relation(fields: [tableId], references: [id], onDelete: SetNull)
+  event         Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  table         EventTable?    @relation(fields: [tableId], references: [id], onDelete: SetNull)
   qrCodes       QRCode[]
   invitation    Invitation?
   photos        Photo[]
@@ -219,14 +220,14 @@ model Guest {
 }
 
 model Invitation {
-  id          String   @id @default(uuid())
-  guestId     String   @unique
-  eventId     String
-  pdfUrl      String?
-  sentAt      DateTime?
-  viewedAt    DateTime?
-  sentViaWhatsApp Boolean @default(false)
-  createdAt   DateTime @default(now())
+  id              String    @id @default(uuid())
+  guestId         String    @unique
+  eventId         String
+  pdfUrl          String?
+  sentAt          DateTime?
+  viewedAt        DateTime?
+  sentViaWhatsApp Boolean   @default(false)
+  createdAt       DateTime  @default(now())
 
   guest Guest @relation(fields: [guestId], references: [id], onDelete: Cascade)
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -235,17 +236,17 @@ model Invitation {
 }
 
 model QRCode {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   eventId     String
   guestId     String?
   companionId String?
   type        String
-  code        String   @unique
-  qrImage     String?  @db.LongText
+  code        String    @unique
+  qrImage     String?   @db.LongText
   usedAt      DateTime?
-  usedCount   Int      @default(0)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  usedCount   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
 
   event     Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
   guest     Guest?     @relation(fields: [guestId], references: [id], onDelete: SetNull)
@@ -267,32 +268,53 @@ model Companion {
 }
 
 model Photo {
-  id          String      @id @default(uuid())
-  eventId     String
-  guestId     String?
-  url         String
+  id           String      @id @default(uuid())
+  eventId      String
+  guestId      String?
+  url          String
   thumbnailUrl String?
-  publicId    String
-  caption     String?
-  status      MediaStatus @default(APPROVED)
-  uploadedAt  DateTime    @default(now())
+  publicId     String
+  caption      String?
+  status       MediaStatus @default(APPROVED)
+  uploadedAt   DateTime    @default(now())
 
-  event Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  guest Guest? @relation(fields: [guestId], references: [id], onDelete: SetNull)
+  event       Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  guest       Guest?            @relation(fields: [guestId], references: [id], onDelete: SetNull)
+  annotations PhotoAnnotation[]
 
   @@map("photos")
 }
 
+model PhotoAnnotation {
+  id               String      @id @default(uuid())
+  photoId          String
+  eventId          String
+  authorName       String?
+  url              String
+  publicId         String
+  texts            String?     @db.Text
+  status           MediaStatus @default(PENDING)
+  moderationReason String?     @db.Text
+  createdAt        DateTime    @default(now())
+
+  photo Photo @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([photoId, status])
+  @@index([eventId, status])
+  @@map("photo_annotations")
+}
+
 model Video {
-  id         String      @id @default(uuid())
-  eventId    String
-  guestId    String?
-  url        String
+  id           String      @id @default(uuid())
+  eventId      String
+  guestId      String?
+  url          String
   thumbnailUrl String?
-  publicId   String
-  duration   Int?
-  status     MediaStatus @default(PENDING)
-  uploadedAt DateTime    @default(now())
+  publicId     String
+  duration     Int?
+  status       MediaStatus @default(PENDING)
+  uploadedAt   DateTime    @default(now())
 
   event Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
   guest Guest? @relation(fields: [guestId], references: [id], onDelete: SetNull)
@@ -301,13 +323,13 @@ model Video {
 }
 
 model GuestMessage {
-  id        String   @id @default(uuid())
-  eventId   String
-  guestId   String?
-  guestName String
-  message   String   @db.Text
-  isApproved Boolean @default(true)
-  createdAt DateTime @default(now())
+  id         String   @id @default(uuid())
+  eventId    String
+  guestId    String?
+  guestName  String
+  message    String   @db.Text
+  isApproved Boolean  @default(true)
+  createdAt  DateTime @default(now())
 
   event Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
   guest Guest? @relation(fields: [guestId], references: [id], onDelete: SetNull)
@@ -393,17 +415,17 @@ model ChatMessage {
 }
 
 model Payment {
-  id            String   @id @default(uuid())
-  eventId       String
-  amount        Decimal  @db.Decimal(10, 2)
-  tax           Decimal  @db.Decimal(10, 2)
-  total         Decimal  @db.Decimal(10, 2)
-  currency      String   @default("MXN")
-  status        String   @default("pending")
-  method        String?
-  reference     String?
-  paidAt        DateTime?
-  createdAt     DateTime @default(now())
+  id        String    @id @default(uuid())
+  eventId   String
+  amount    Decimal   @db.Decimal(10, 2)
+  tax       Decimal   @db.Decimal(10, 2)
+  total     Decimal   @db.Decimal(10, 2)
+  currency  String    @default("MXN")
+  status    String    @default("pending")
+  method    String?
+  reference String?
+  paidAt    DateTime?
+  createdAt DateTime  @default(now())
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 

@@ -129,8 +129,8 @@
           <div
             v-for="photo in photos"
             :key="photo.id"
-            class="aspect-square rounded-xl overflow-hidden cursor-pointer group"
-            @click="selectedPhoto = photo"
+            class="aspect-square rounded-xl overflow-hidden cursor-pointer group relative"
+            @click="openPhoto(photo)"
           >
             <img
               :src="photo.thumbnailUrl || photo.url"
@@ -138,6 +138,12 @@
               class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               loading="lazy"
             />
+            <span
+              v-if="photo._count?.annotations"
+              class="absolute bottom-1.5 right-1.5 glass-dark rounded-full px-2 py-0.5 text-[10px] text-white/90"
+            >
+              🎨 {{ photo._count.annotations }}
+            </span>
           </div>
         </div>
 
@@ -151,25 +157,61 @@
     <Teleport to="body">
       <Transition name="modal">
         <div
-          v-if="selectedPhoto"
-          class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay"
-          @click.self="selectedPhoto = null"
+          v-if="selectedPhoto && !editing"
+          class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay overflow-y-auto"
+          @click.self="closePhoto"
         >
           <div class="relative max-w-2xl w-full">
-            <img
-              :src="selectedPhoto.url"
-              :alt="selectedPhoto.caption || ''"
-              class="w-full rounded-2xl shadow-card"
-            />
-            <button
-              class="absolute top-3 right-3 w-9 h-9 glass-dark rounded-full flex items-center justify-center text-white/70 hover:text-white"
-              @click="selectedPhoto = null"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
+            <div class="relative">
+              <img
+                :src="viewing?.url ?? selectedPhoto.url"
+                :alt="selectedPhoto.caption || ''"
+                class="w-full rounded-2xl shadow-card max-h-[70vh] object-contain bg-black/40"
+              />
+              <button
+                class="absolute top-3 right-3 w-9 h-9 glass-dark rounded-full flex items-center justify-center text-white/70 hover:text-white"
+                @click="closePhoto"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+              <div v-if="viewing" class="absolute bottom-3 left-3 glass-dark rounded-xl px-3 py-1.5">
+                <p class="text-xs text-white/80">🎨 {{ viewing.authorName || 'Un invitado' }}</p>
+              </div>
+            </div>
+
+            <div class="mt-3 flex items-center gap-2 overflow-x-auto pb-1">
+              <button
+                :class="['w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 border-2', !viewing ? 'border-revel-gold' : 'border-transparent opacity-70']"
+                title="Foto original"
+                @click="viewing = null"
+              >
+                <img :src="selectedPhoto.thumbnailUrl || selectedPhoto.url" alt="Original" class="w-full h-full object-cover" />
+              </button>
+              <button
+                v-for="a in annotations"
+                :key="a.id"
+                :class="['w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 border-2', viewing?.id === a.id ? 'border-revel-gold' : 'border-transparent opacity-70']"
+                :title="a.authorName || 'Dedicatoria'"
+                @click="viewing = a"
+              >
+                <img :src="a.url.replace('/upload/', '/upload/w_160,h_160,c_fill/')" alt="Dedicatoria" class="w-full h-full object-cover" />
+              </button>
+              <UiButton v-if="albumOpen" size="sm" class="ml-auto flex-shrink-0" @click="editing = true">
+                🎨 Dibujar y escribir
+              </UiButton>
+            </div>
+            <p v-if="notice" class="mt-2 text-xs text-green-400">{{ notice }}</p>
           </div>
         </div>
       </Transition>
+
+      <AlbumPhotoEditor
+        v-if="selectedPhoto && editing"
+        :photo="selectedPhoto"
+        :guest-code="guestCode"
+        @close="editing = false"
+        @saved="onAnnotationSaved"
+      />
     </Teleport>
   </div>
 </template>
@@ -177,7 +219,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: false })
 
-import type { Photo } from '~/types'
+import type { Photo, PhotoAnnotation } from '~/types'
 
 const route = useRoute()
 const eventId = route.params.eventId as string
@@ -189,6 +231,39 @@ const uploading = ref(false)
 const loadingPhotos = ref(true)
 const photos = ref<Photo[]>([])
 const selectedPhoto = ref<Photo | null>(null)
+type PublicAnnotation = Pick<PhotoAnnotation, 'id' | 'url' | 'authorName' | 'createdAt'>
+const annotations = ref<PublicAnnotation[]>([])
+const viewing = ref<PublicAnnotation | null>(null)
+const editing = ref(false)
+const notice = ref('')
+
+async function loadAnnotations(photoId: string) {
+  const res = await $fetch<{ data: PublicAnnotation[] }>(`/api/photos/${photoId}/annotations`).catch(() => null)
+  if (selectedPhoto.value?.id === photoId) annotations.value = res?.data ?? []
+}
+
+function openPhoto(photo: Photo) {
+  selectedPhoto.value = photo
+  annotations.value = []
+  viewing.value = null
+  notice.value = ''
+  loadAnnotations(photo.id)
+}
+
+function closePhoto() {
+  selectedPhoto.value = null
+  viewing.value = null
+}
+
+async function onAnnotationSaved(message: string) {
+  editing.value = false
+  notice.value = message
+  const photo = selectedPhoto.value
+  if (!photo) return
+  await loadAnnotations(photo.id)
+  photo._count = { annotations: annotations.value.length }
+  viewing.value = annotations.value[0] ?? null
+}
 
 interface EventInfo {
   id: string

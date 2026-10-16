@@ -153,6 +153,20 @@ export interface Photo {
   status: MediaStatus
   uploadedAt: string
   guest?: Pick<Guest, 'id' | 'name'>
+  _count?: { annotations: number }
+}
+
+export interface PhotoAnnotation {
+  id: string
+  photoId: string
+  eventId: string
+  authorName?: string | null
+  url: string
+  texts?: string | null
+  status: MediaStatus
+  moderationReason?: string | null
+  createdAt: string
+  photo?: Pick<Photo, 'id' | 'url' | 'thumbnailUrl'>
 }
 
 export interface Video {

@@ -37,6 +37,7 @@ export default defineNuxtConfig({
     cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME,
     cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
     cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY,
     public: {
       socketUrl: process.env.SOCKET_URL || 'http://localhost:3000',
       appUrl: process.env.APP_URL || 'http://localhost:3000',

@@ -128,7 +128,56 @@
         </div>
       </div>
 
-      <div v-if="loadingPhotos" class="grid grid-cols-4 gap-3">
+      <div class="flex items-center gap-2 mb-5">
+        <button
+          :class="['px-4 py-1.5 rounded-lg text-sm transition-colors', view === 'photos' ? 'bg-revel-gold text-revel-black font-medium' : 'bg-white/5 text-white/60 hover:bg-white/10']"
+          @click="view = 'photos'"
+        >
+          Fotos
+        </button>
+        <button
+          :class="['px-4 py-1.5 rounded-lg text-sm transition-colors flex items-center gap-2', view === 'annotations' ? 'bg-revel-gold text-revel-black font-medium' : 'bg-white/5 text-white/60 hover:bg-white/10']"
+          @click="view = 'annotations'"
+        >
+          Dibujos y dedicatorias
+          <span v-if="pendingCount" class="bg-red-500 text-white text-[10px] rounded-full px-1.5 py-0.5 leading-none">{{ pendingCount }}</span>
+        </button>
+      </div>
+
+      <!-- Moderación de dibujos y dedicatorias -->
+      <div v-if="view === 'annotations'">
+        <div class="flex items-center gap-2 mb-4">
+          <button
+            v-for="f in annotationFilters"
+            :key="f.id"
+            :class="['px-3 py-1 rounded-full text-xs border transition-colors', annotationFilter === f.id ? 'border-revel-gold text-revel-gold' : 'border-white/10 text-white/50 hover:text-white']"
+            @click="annotationFilter = f.id"
+          >
+            {{ f.label }} ({{ annotations.filter((a) => a.status === f.id).length }})
+          </button>
+        </div>
+
+        <div v-if="loadingAnnotations" class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div v-for="i in 4" :key="i" class="aspect-square shimmer rounded-xl" />
+        </div>
+        <div v-else-if="filteredAnnotations.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div v-for="a in filteredAnnotations" :key="a.id" class="card-revel overflow-hidden">
+            <img :src="a.url" alt="Dedicatoria" class="w-full aspect-square object-cover cursor-pointer" @click="previewUrl = a.url" />
+            <div class="p-3 space-y-2">
+              <p class="text-xs text-white/70">{{ a.authorName || 'Invitado' }} · {{ formatDate(a.createdAt) }}</p>
+              <p v-if="a.moderationReason" class="text-[11px] text-white/40">Moderador: {{ a.moderationReason }}</p>
+              <div class="flex gap-2">
+                <button v-if="a.status !== 'APPROVED'" class="btn-secondary text-xs px-2.5 py-1" @click="setAnnotationStatus(a, 'APPROVED')">Aprobar</button>
+                <button v-if="a.status !== 'REJECTED'" class="btn-secondary text-xs px-2.5 py-1" @click="setAnnotationStatus(a, 'REJECTED')">Ocultar</button>
+                <button class="text-xs px-2.5 py-1 text-red-400 hover:text-red-300 ml-auto" @click="deleteAnnotation(a)">Eliminar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else class="text-center py-16 text-white/40 text-sm">No hay dedicatorias en esta categoría</div>
+      </div>
+
+      <div v-else-if="loadingPhotos" class="grid grid-cols-4 gap-3">
         <div v-for="i in 12" :key="i" class="aspect-square shimmer rounded-xl" />
       </div>
 
@@ -140,13 +189,14 @@
           @click="selectedPhoto = photo"
         >
           <img :src="photo.thumbnailUrl || photo.url" :alt="photo.caption || ''" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" />
+          <span v-if="photo._count?.annotations" class="absolute top-2 right-2 glass-dark rounded-full px-2 py-0.5 text-[10px] text-white/90">🎨 {{ photo._count.annotations }}</span>
           <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-end p-2 opacity-0 group-hover:opacity-100">
             <p class="text-xs text-white truncate">{{ photo.guest?.name || 'Anónimo' }}</p>
           </div>
         </div>
       </div>
 
-      <div v-else class="text-center py-20">
+      <div v-else-if="view === 'photos'" class="text-center py-20">
         <div class="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mx-auto mb-3 text-white/30">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
@@ -159,6 +209,11 @@
 
     
     <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="previewUrl" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay" @click="previewUrl = ''">
+          <img :src="previewUrl" alt="" class="max-w-3xl w-full max-h-[90vh] object-contain rounded-2xl" />
+        </div>
+      </Transition>
       <Transition name="modal">
         <div v-if="selectedPhoto" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay" @click.self="selectedPhoto = null">
           <div class="relative max-w-3xl w-full">
@@ -180,10 +235,10 @@
 definePageMeta({ layout: 'dashboard' })
 
 import { useEventsStore } from '~/stores/events'
-import type { Photo } from '~/types'
+import type { Photo, PhotoAnnotation } from '~/types'
 
 const eventsStore = useEventsStore()
-const { get, getHeaders } = useApi()
+const { get, put, del, getHeaders } = useApi()
 
 const selectedEventId = ref('')
 const photos = ref<Photo[]>([])
@@ -192,6 +247,40 @@ const loadingPhotos = ref(false)
 const downloading = ref(false)
 const selectedPhoto = ref<Photo | null>(null)
 const search = ref('')
+
+const view = ref<'photos' | 'annotations'>('photos')
+const annotations = ref<PhotoAnnotation[]>([])
+const loadingAnnotations = ref(false)
+const annotationFilter = ref<'PENDING' | 'APPROVED' | 'REJECTED'>('PENDING')
+const previewUrl = ref('')
+const annotationFilters = [
+  { id: 'PENDING' as const, label: 'Por revisar' },
+  { id: 'APPROVED' as const, label: 'Publicadas' },
+  { id: 'REJECTED' as const, label: 'Ocultas' },
+]
+const filteredAnnotations = computed(() => annotations.value.filter((a) => a.status === annotationFilter.value))
+const pendingCount = computed(() => annotations.value.filter((a) => a.status === 'PENDING').length)
+
+async function loadAnnotations(eventId: string) {
+  loadingAnnotations.value = true
+  try {
+    const res = await get<{ data: PhotoAnnotation[] }>('/api/annotations', { eventId })
+    annotations.value = res.data
+  } finally {
+    loadingAnnotations.value = false
+  }
+}
+
+async function setAnnotationStatus(a: PhotoAnnotation, status: 'APPROVED' | 'REJECTED') {
+  await put(`/api/annotations/${a.id}`, { status })
+  a.status = status
+}
+
+async function deleteAnnotation(a: PhotoAnnotation) {
+  if (!confirm('¿Eliminar esta dedicatoria definitivamente?')) return
+  await del(`/api/annotations/${a.id}`)
+  annotations.value = annotations.value.filter((x) => x.id !== a.id)
+}
 
 const filteredEvents = computed(() =>
   eventsStore.events.filter((e) =>
@@ -203,6 +292,9 @@ const currentEvent = computed(() => eventsStore.events.find((e) => e.id === sele
 
 async function selectEvent(id: string) {
   selectedEventId.value = id
+  view.value = 'photos'
+  annotations.value = []
+  loadAnnotations(id)
   loadingPhotos.value = true
   try {
     const res = await get<{ data: Photo[] }>('/api/photos', { eventId: id, limit: 200 })
