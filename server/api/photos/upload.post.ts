@@ -20,10 +20,10 @@ export default defineEventHandler(async (event) => {
 
   const { eventId, guestCode, imageBase64, caption } = parsed.data
 
-  // Verificar que el evento existe, está activo y ya comenzó
+  // Verificar que el evento existe y está activo (se permite subir fotos antes de que comience)
   const eventRecord = await prisma.event.findUnique({
     where: { id: eventId },
-    select: { date: true, time: true, status: true },
+    select: { status: true },
   })
 
   if (!eventRecord) {
@@ -32,24 +32,6 @@ export default defineEventHandler(async (event) => {
 
   if (eventRecord.status === 'DRAFT' || eventRecord.status === 'CANCELLED') {
     throw createError({ statusCode: 403, message: 'El álbum de este evento no está disponible' })
-  }
-
-  const eventDate = new Date(eventRecord.date)
-  const [hours, minutes] = (eventRecord.time ?? '00:00').split(':').map(Number)
-  const eventStart = new Date(Date.UTC(
-    eventDate.getUTCFullYear(),
-    eventDate.getUTCMonth(),
-    eventDate.getUTCDate(),
-    hours ?? 0,
-    minutes ?? 0,
-    0,
-  ))
-
-  if (new Date() < eventStart) {
-    throw createError({
-      statusCode: 403,
-      message: `El álbum estará disponible a partir de las ${eventRecord.time} hrs`,
-    })
   }
 
   cloudinary.config({

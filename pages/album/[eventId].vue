@@ -20,36 +20,12 @@
           Subir fotos
         </h2>
 
-        <!-- Bloqueado: evento no ha comenzado -->
-        <div v-if="eventInfo && !albumOpen" class="text-center py-2">
-          <!-- Ícono reloj -->
-          <div class="w-16 h-16 rounded-2xl bg-revel-gold/8 border border-revel-gold/20 flex items-center justify-center mx-auto mb-5">
-            <svg class="w-8 h-8 text-revel-gold/70" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-
-          <p class="text-white/50 text-xs uppercase tracking-widest font-semibold mb-1">El álbum abre en</p>
-          <p class="text-white/30 text-xs mb-6">
-            {{ formatEventDate(eventInfo.date) }} · {{ eventInfo.time }} hrs
-          </p>
-
-          <!-- Contador -->
-          <div class="grid grid-cols-4 gap-3 max-w-xs mx-auto mb-6">
-            <div v-for="unit in countdown" :key="unit.label" class="flex flex-col items-center gap-1">
-              <div class="w-full rounded-xl bg-white/[0.05] border border-white/8 py-3">
-                <span class="font-display text-2xl font-bold text-white tabular-nums leading-none">
-                  {{ unit.value }}
-                </span>
-              </div>
-              <span class="text-[10px] text-white/30 uppercase tracking-wider">{{ unit.label }}</span>
-            </div>
-          </div>
-
-          <p class="text-white/25 text-xs">A partir de esa hora podrás compartir tus fotos del evento</p>
+        <!-- Bloqueado: evento en borrador o cancelado -->
+        <div v-if="eventInfo && !albumOpen" class="text-center py-6">
+          <p class="text-white/50 text-sm">El álbum de este evento no está disponible</p>
         </div>
 
-        <!-- Disponible: evento ya comenzó -->
+        <!-- Disponible: se pueden subir fotos incluso antes de que comience el evento -->
         <template v-else-if="albumOpen || !eventInfo">
           <div
             ref="dropZone"
@@ -273,44 +249,10 @@ interface EventInfo {
   status: string
   startsAt: string
   hasStarted: boolean
+  isOpen: boolean
 }
 const eventInfo = ref<EventInfo | null>(null)
 const albumOpen = ref(false)
-const now = ref(new Date())
-let countdownInterval: ReturnType<typeof setInterval> | null = null
-
-const countdown = computed(() => {
-  if (!eventInfo.value) return []
-  const target = new Date(eventInfo.value.startsAt).getTime()
-  const diff = Math.max(0, target - now.value.getTime())
-
-  const days    = Math.floor(diff / 86400000)
-  const hours   = Math.floor((diff % 86400000) / 3600000)
-  const minutes = Math.floor((diff % 3600000) / 60000)
-  const seconds = Math.floor((diff % 60000) / 1000)
-
-  return [
-    { label: 'Días',    value: String(days).padStart(2, '0') },
-    { label: 'Horas',   value: String(hours).padStart(2, '0') },
-    { label: 'Min',     value: String(minutes).padStart(2, '0') },
-    { label: 'Seg',     value: String(seconds).padStart(2, '0') },
-  ]
-})
-
-function startCountdown() {
-  countdownInterval = setInterval(() => {
-    now.value = new Date()
-    if (eventInfo.value && now.value >= new Date(eventInfo.value.startsAt)) {
-      albumOpen.value = true
-      if (countdownInterval) clearInterval(countdownInterval)
-    }
-  }, 1000)
-}
-
-function formatEventDate(date: string) {
-  return new Date(date).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' })
-}
-
 interface UploadItem {
   id: string
   file: File
@@ -421,14 +363,10 @@ onMounted(async () => {
   ])
   if (info) {
     eventInfo.value = info.data
-    albumOpen.value = info.data.hasStarted
-    if (!info.data.hasStarted) startCountdown()
+    albumOpen.value = info.data.isOpen
   }
 })
 
-onUnmounted(() => {
-  if (countdownInterval) clearInterval(countdownInterval)
-})
 </script>
 
 <style scoped>

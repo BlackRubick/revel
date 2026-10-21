@@ -33,6 +33,7 @@ export default defineEventHandler(async (event) => {
       status: eventRecord.status,
       startsAt: eventStart.toISOString(),
       hasStarted: new Date() >= eventStart,
+      isOpen: eventRecord.status !== 'DRAFT' && eventRecord.status !== 'CANCELLED',
     },
   }
 })
