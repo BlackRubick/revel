@@ -3,9 +3,9 @@
     <!-- Barra superior -->
     <div class="flex items-center justify-between px-4 py-3 border-b border-white/8">
       <button class="text-white/60 hover:text-white text-sm" :disabled="saving" @click="emit('close')">Cancelar</button>
-      <p class="font-display text-white text-sm font-semibold">Dibuja y escribe</p>
+      <p class="font-display text-white text-sm font-semibold">{{ local ? 'Editar foto' : 'Dibuja y escribe' }}</p>
       <UiButton size="sm" :loading="saving" loading-text="Revisando..." :disabled="!actions.length || !!textWarning || !!nameWarning" @click="save">
-        Publicar
+        {{ local ? 'Listo' : 'Publicar' }}
       </UiButton>
     </div>
 
@@ -82,13 +82,13 @@
         <span class="rounded-full flex-shrink-0" :style="{ width: `${Math.max(4, size / 1.5)}px`, height: `${Math.max(4, size / 1.5)}px`, background: color }" />
       </div>
 
-      <div>
+      <div v-if="!local">
         <input v-model="authorName" maxlength="60" placeholder="Tu nombre (opcional)" class="input-revel w-full text-sm py-2" />
         <p v-if="nameWarning" class="text-xs text-red-400 mt-1">{{ nameWarning }}</p>
       </div>
 
       <p v-if="errorMsg" class="text-xs text-red-400">{{ errorMsg }}</p>
-      <p class="text-[11px] text-white/30">Todas las ediciones se revisan antes de publicarse. No se permiten groserías, insultos ni dibujos obscenos.</p>
+      <p v-if="!local" class="text-[11px] text-white/30">Todas las ediciones se revisan antes de publicarse. No se permiten groserías, insultos ni dibujos obscenos.</p>
     </div>
   </div>
 </template>
@@ -97,8 +97,11 @@
 import type { Photo } from '~/types'
 import { findProfanity } from '~/utils/profanity'
 
-const props = defineProps<{ photo: Photo; guestCode?: string }>()
-const emit = defineEmits<{ close: []; saved: [message: string] }>()
+// Con `photo` publica una dedicatoria sobre una foto del álbum; con `src` edita una foto
+// local (antes de subirla) y devuelve el resultado en `edited`.
+const props = defineProps<{ photo?: Photo; src?: string; guestCode?: string }>()
+const emit = defineEmits<{ close: []; saved: [message: string]; edited: [imageBase64: string] }>()
+const local = computed(() => !props.photo)
 
 type Tool = 'brush' | 'highlighter' | 'eraser' | 'text'
 type Point = { x: number; y: number }
@@ -268,9 +271,13 @@ async function save() {
     ctx.drawImage(baseCanvas.value!, 0, 0)
     ctx.drawImage(drawCanvas.value!, 0, 0)
     const imageBase64 = out.toDataURL('image/jpeg', 0.85)
+    if (local.value) {
+      emit('edited', imageBase64)
+      return
+    }
 
     const texts = actions.value.filter((a): a is Extract<Action, { kind: 'text' }> => a.kind === 'text').map((a) => a.text)
-    const res = await $fetch<{ message: string }>(`/api/photos/${props.photo.id}/annotations`, {
+    const res = await $fetch<{ message: string }>(`/api/photos/${props.photo!.id}/annotations`, {
       method: 'POST',
       body: { imageBase64, texts, authorName: authorName.value.trim() || undefined, guestCode: props.guestCode || undefined },
     })
@@ -315,7 +322,7 @@ onMounted(() => {
   img.onerror = () => {
     loadError.value = 'No se pudo cargar la foto para editarla.'
   }
-  img.src = props.photo.url
+  img.src = props.src ?? props.photo!.url
 })
 
 onUnmounted(() => resizeObserver?.disconnect())

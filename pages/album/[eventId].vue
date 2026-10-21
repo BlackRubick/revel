@@ -41,6 +41,19 @@
             </div>
             <p class="text-white/60 text-sm mb-1">Arrastra fotos aquí o haz clic</p>
             <p class="text-white/30 text-xs">JPG, PNG, WEBP — Máx. 10MB por foto</p>
+            <div class="grid grid-cols-2 gap-2 mt-5" @click.stop>
+              <UiButton size="sm" @click="cameraInput?.click()">📷 Tomar foto</UiButton>
+              <UiButton size="sm" variant="secondary" @click="triggerFileInput">🖼️ Elegir fotos</UiButton>
+              <!-- Dentro del contenedor con @click.stop para que no abra también la galería -->
+              <input
+                ref="cameraInput"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                class="hidden"
+                @change="handleFileChange"
+              />
+            </div>
             <input
               ref="fileInput"
               type="file"
@@ -70,7 +83,22 @@
                 />
               </div>
             </div>
-            <span class="text-xs" :class="{ 'text-green-400': item.status === 'done', 'text-red-400': item.status === 'error', 'text-white/40': item.status === 'pending' || item.status === 'uploading' }">
+            <button
+              v-if="item.status === 'pending' && item.preview"
+              class="px-2.5 py-1 rounded-lg text-xs bg-white/5 text-white/70 hover:bg-white/10 flex-shrink-0"
+              @click="editingItem = item"
+            >
+              ✏️ Editar
+            </button>
+            <button
+              v-if="item.status === 'pending'"
+              class="w-7 h-7 rounded-lg text-white/40 hover:text-red-400 flex items-center justify-center flex-shrink-0"
+              aria-label="Quitar foto"
+              @click="removeItem(item.id)"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+            <span v-else class="text-xs" :class="{ 'text-green-400': item.status === 'done', 'text-red-400': item.status === 'error', 'text-white/40': item.status === 'pending' || item.status === 'uploading' }">
               <svg v-if="item.status === 'done'" class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
               <svg v-else-if="item.status === 'error'" class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
               <div v-else class="w-3.5 h-3.5 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
@@ -84,7 +112,7 @@
           :loading="uploading"
           @click="uploadAll"
         >
-          Subir {{ pendingUploads.length }} foto{{ pendingUploads.length !== 1 ? 's' : '' }}
+          Subir {{ pendingUploads.length }} foto{{ pendingUploads.length !== 1 ? 's' : '' }} al álbum
         </UiButton>
       </div>
 
@@ -183,6 +211,13 @@
       </Transition>
 
       <AlbumPhotoEditor
+        v-if="editingItem"
+        :src="editingItem.preview"
+        @close="editingItem = null"
+        @edited="onItemEdited"
+      />
+
+      <AlbumPhotoEditor
         v-if="selectedPhoto && editing"
         :photo="selectedPhoto"
         :guest-code="guestCode"
@@ -203,6 +238,7 @@ const eventId = route.params.eventId as string
 const guestCode = (route.query.code as string) || ''
 
 const fileInput = ref<HTMLInputElement>()
+const cameraInput = ref<HTMLInputElement>()
 const isDragOver = ref(false)
 const uploading = ref(false)
 const loadingPhotos = ref(true)
@@ -265,14 +301,26 @@ interface UploadItem {
 
 const uploadQueue = ref<UploadItem[]>([])
 const pendingUploads = computed(() => uploadQueue.value.filter((i) => i.status === 'pending'))
+const editingItem = ref<UploadItem | null>(null)
+
+function onItemEdited(imageBase64: string) {
+  if (editingItem.value) editingItem.value.preview = imageBase64
+  editingItem.value = null
+}
+
+function removeItem(id: string) {
+  uploadQueue.value = uploadQueue.value.filter((i) => i.id !== id)
+}
 
 function triggerFileInput() {
   fileInput.value?.click()
 }
 
 function handleFileChange(e: Event) {
-  const files = (e.target as HTMLInputElement).files
-  if (files) addFiles(Array.from(files))
+  const input = e.target as HTMLInputElement
+  if (input.files) addFiles(Array.from(input.files))
+  // Permite volver a elegir/tomar la misma foto
+  input.value = ''
 }
 
 function handleDrop(e: DragEvent) {
