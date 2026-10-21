@@ -10,7 +10,9 @@
           <span class="font-display font-bold text-revel-black text-xl">R</span>
         </div>
         <h1 class="font-display text-2xl font-bold text-white mb-1">Álbum digital</h1>
-        <p class="text-white/50 text-sm">Comparte tus fotos del evento</p>
+        <p class="text-white/50 text-sm">
+          Comparte las fotos del evento<template v-if="eventInfo?.name"> <span class="text-revel-gold font-semibold">{{ eventInfo.name }}</span></template>
+        </p>
       </div>
 
       
