@@ -888,3 +888,13 @@ body {
   outline: 2px solid rgba(212, 175, 55, 0.5);
   outline-offset: 2px;
 }
+
+/* ── Selects nativos: el desplegable de opciones lo pinta el sistema (fondo claro en Windows)
+   mientras el texto hereda el blanco del input, dejando las opciones invisibles ── */
+select { color-scheme: dark; }
+select option,
+select optgroup {
+  background-color: #1a1a1a;
+  color: #fff;
+}
+select option:disabled { color: rgba(255,255,255,0.4); }
