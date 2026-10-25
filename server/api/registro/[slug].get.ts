@@ -15,6 +15,7 @@ export default defineEventHandler(async (event) => {
       venueMapUrl: true,
       coverImage: true,
       type: true,
+      category: true,
       churchName: true,
       churchAddress: true,
       status: true,

@@ -60,7 +60,7 @@
             <!-- Header del evento -->
             <div class="px-6 pt-6 pb-5 text-center border-b border-white/8">
               <p class="text-revel-gold/70 text-[11px] font-semibold uppercase tracking-widest mb-3">
-                Estás invitado/a
+                {{ isBusiness ? 'Registro de asistentes' : 'Estás invitado/a' }}
               </p>
               <h1 class="font-display text-2xl font-bold text-white leading-tight mb-2">
                 {{ event?.name }}
@@ -97,7 +97,9 @@
 
             <!-- Campos del formulario -->
             <div class="px-6 py-5 space-y-5">
-              <p class="text-xs text-white/40 text-center">Completa tus datos para obtener tu invitación</p>
+              <p class="text-xs text-white/40 text-center">
+                {{ isBusiness ? 'Completa tus datos para obtener tu acceso' : 'Completa tus datos para obtener tu invitación' }}
+              </p>
 
               <!-- Nombre -->
               <div>
@@ -114,8 +116,54 @@
                 />
               </div>
 
+              <!-- Datos de contacto (solo eventos empresariales) -->
+              <template v-if="isBusiness">
+                <div>
+                  <label class="block text-xs font-medium text-white/55 uppercase tracking-wider mb-2">
+                    Procedencia (empresa o institución)
+                  </label>
+                  <input
+                    v-model="form.company"
+                    type="text"
+                    placeholder="Ej. Grupo Industrial del Sureste"
+                    maxlength="150"
+                    autocomplete="organization"
+                    class="input-revel w-full"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-white/55 uppercase tracking-wider mb-2">
+                    Teléfono
+                  </label>
+                  <input
+                    v-model="form.phone"
+                    type="tel"
+                    inputmode="tel"
+                    placeholder="Ej. 961 123 4567"
+                    maxlength="30"
+                    autocomplete="tel"
+                    class="input-revel w-full"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-white/55 uppercase tracking-wider mb-2">
+                    Correo electrónico
+                  </label>
+                  <input
+                    v-model="form.email"
+                    type="email"
+                    inputmode="email"
+                    placeholder="Ej. maria@empresa.com"
+                    maxlength="150"
+                    autocomplete="email"
+                    class="input-revel w-full"
+                    @keydown.enter="register"
+                  />
+                </div>
+              </template>
+
               <!-- Acompañantes -->
-              <div>
+              <div v-if="!isBusiness">
                 <label class="block text-xs font-medium text-white/55 uppercase tracking-wider mb-2">
                   Acompañantes
                 </label>
@@ -192,7 +240,7 @@
             <div class="px-6 pb-6">
               <button
                 type="button"
-                :disabled="submitting || !form.name.trim() || form.name.trim().length < 2"
+                :disabled="submitting || !canSubmit"
                 class="btn-primary w-full justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 @click="register"
               >
@@ -200,7 +248,7 @@
                   <span class="w-4 h-4 border-2 border-revel-black/30 border-t-revel-black rounded-full animate-spin" />
                   Generando tu invitación...
                 </span>
-                <span v-else>Obtener mi invitación</span>
+                <span v-else>{{ isBusiness ? 'Obtener mi acceso' : 'Obtener mi invitación' }}</span>
               </button>
             </div>
           </div>
@@ -226,7 +274,7 @@
             <!-- Header -->
             <div class="px-6 pt-6 pb-4 text-center border-b border-white/8">
               <p class="text-revel-gold/70 text-[11px] font-semibold uppercase tracking-widest mb-3">
-                Invitación especial
+                {{ isBusiness ? 'Registro confirmado' : 'Invitación especial' }}
               </p>
               <h1 class="font-display text-2xl font-bold text-white leading-tight mb-1">
                 {{ result.event.name }}
@@ -238,6 +286,7 @@
             <div class="px-6 py-5 text-center border-b border-white/8">
               <p class="text-white/50 text-xs mb-1">Estimado/a</p>
               <p class="font-display text-2xl font-bold text-white">{{ result.guest.name }}</p>
+              <p v-if="result.guest.company" class="text-white/55 text-sm mt-0.5">{{ result.guest.company }}</p>
               <p class="text-white/40 text-xs mt-1">
                 {{ result.guest.companions > 0
                   ? `Invitación válida para ${result.guest.companions + 1} personas`
@@ -414,6 +463,7 @@ interface PublicEvent {
   venueMapUrl?: string | null
   coverImage?: string | null
   type: string
+  category: 'SOCIAL' | 'BUSINESS'
   churchName?: string | null
   churchAddress?: string | null
   status: string
@@ -426,7 +476,7 @@ interface CompanionResult {
 }
 
 interface RegistrationResult {
-  guest: { name: string; companions: number }
+  guest: { name: string; company?: string | null; companions: number }
   event: PublicEvent
   code: string
   qrImage: string
@@ -438,8 +488,21 @@ const result = ref<RegistrationResult | null>(null)
 
 const form = reactive({
   name: '',
+  company: '',
+  phone: '',
+  email: '',
   companions: 0,
   companionNames: [] as string[],
+})
+
+const isBusiness = computed(() => event.value?.category === 'BUSINESS')
+
+const canSubmit = computed(() => {
+  if (form.name.trim().length < 2) return false
+  if (!isBusiness.value) return true
+  return form.company.trim().length >= 2
+    && form.phone.replace(/\D/g, '').length >= 10
+    && /^\S+@\S+\.\S+$/.test(form.email.trim())
 })
 
 function downloadQR(dataUrl: string, name: string) {
@@ -483,13 +546,18 @@ function formatDate(date?: string | null) {
 }
 
 async function register() {
-  if (submitting.value || !form.name.trim() || form.name.trim().length < 2) return
+  if (submitting.value || !canSubmit.value) return
   submitError.value = ''
   submitting.value = true
   try {
     const res = await $fetch<{ success: boolean; data: RegistrationResult }>(
       `/api/registro/${slug}`,
-      { method: 'POST', body: { name: form.name.trim(), companions: form.companions, companionNames: form.companionNames } },
+      {
+        method: 'POST',
+        body: isBusiness.value
+          ? { name: form.name.trim(), company: form.company.trim(), phone: form.phone.trim(), email: form.email.trim() }
+          : { name: form.name.trim(), companions: form.companions, companionNames: form.companionNames },
+      },
     )
     result.value = res.data
     step.value = 'success'

@@ -7,6 +7,7 @@ import { nanoid } from 'nanoid'
 const schema = z.object({
   eventId: z.string().uuid(),
   name: z.string().min(2).max(100),
+  company: z.string().max(150).optional(),
   phone: z.string().optional(),
   email: z.string().email().optional().or(z.literal('')),
   companions: z.number().int().min(0).max(20).default(0),
@@ -35,6 +36,7 @@ export default defineEventHandler(async (event) => {
     data: {
       eventId: data.eventId,
       name: data.name,
+      company: data.company || null,
       phone: data.phone || null,
       email: data.email || null,
       companions: data.companions,

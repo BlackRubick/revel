@@ -49,6 +49,8 @@ export interface Package {
   isActive: boolean
 }
 
+export type EventCategory = 'SOCIAL' | 'BUSINESS'
+
 export interface Event {
   id: string
   slug: string
@@ -61,6 +63,7 @@ export interface Event {
   venueAddress?: string
   venueMapUrl?: string
   type: string
+  category: EventCategory
   tableCount: number
   tableCapacity: number
   status: EventStatus
@@ -104,6 +107,7 @@ export interface Guest {
   eventId: string
   tableId?: string
   name: string
+  company?: string
   phone?: string
   email?: string
   companions: number

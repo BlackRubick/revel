@@ -89,6 +89,10 @@
               <dd class="text-sm text-white/80">{{ eventTypeLabel(event.type) }}</dd>
             </div>
             <div class="flex gap-3">
+              <dt class="text-xs text-white/35 w-28 flex-shrink-0 pt-0.5">Categoría</dt>
+              <dd class="text-sm text-white/80">{{ event.category === 'BUSINESS' ? 'Empresarial' : 'Social' }}</dd>
+            </div>
+            <div class="flex gap-3">
               <dt class="text-xs text-white/35 w-28 flex-shrink-0 pt-0.5">Paquete</dt>
               <dd class="text-sm text-white/80">{{ event.package?.name }}</dd>
             </div>
@@ -168,7 +172,7 @@
 
     
     <div v-if="activeTab === 'guests'">
-      <DashboardGuestsTab :event-id="event.id" :event-name="event.name" :package-type="event.package?.type" :event-slug="event.slug" />
+      <DashboardGuestsTab :event-id="event.id" :event-name="event.name" :package-type="event.package?.type" :event-slug="event.slug" :event-category="event.category" />
     </div>
 
     
@@ -276,9 +280,17 @@
         />
       </div>
 
-      <!-- Fila 2: tipo + fecha + hora -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <!-- Fila 2: tipo + categoría + fecha + hora -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <UiSelect v-model="editForm.type" label="Tipo" :options="eventTypes" />
+        <UiSelect
+          v-model="editForm.category"
+          label="Categoría"
+          :options="[
+            { label: 'Social', value: 'SOCIAL' },
+            { label: 'Empresarial', value: 'BUSINESS' },
+          ]"
+        />
         <UiInput v-model="editForm.date" label="Fecha" type="date" required />
         <UiInput v-model="editForm.time" label="Hora" type="time" />
       </div>
@@ -496,6 +508,7 @@ const editForm = reactive({
   name: '',
   description: '',
   type: '',
+  category: 'SOCIAL',
   date: '',
   time: '',
   venue: '',
@@ -552,6 +565,7 @@ function openEdit() {
     name: event.value.name,
     description: event.value.description ?? '',
     type: event.value.type,
+    category: event.value.category ?? 'SOCIAL',
     date: event.value.date.slice(0, 10),
     time: event.value.time,
     venue: event.value.venue,

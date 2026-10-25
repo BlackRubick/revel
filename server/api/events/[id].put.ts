@@ -12,6 +12,7 @@ const schema = z.object({
   venueAddress: z.string().optional(),
   venueMapUrl: z.string().optional(),
   type: z.string().optional(),
+  category: z.enum(['SOCIAL', 'BUSINESS']).optional(),
   tableCount: z.number().int().min(1).max(200).optional(),
   tableCapacity: z.number().int().min(1).max(50).optional(),
   status: z.enum(['DRAFT', 'ACTIVE', 'FINISHED', 'CANCELLED']).optional(),

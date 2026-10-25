@@ -7,6 +7,16 @@ const schema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres').max(100),
   companions: z.number().int().min(0).max(20).default(0),
   companionNames: z.array(z.string().max(100)).optional().default([]),
+  company: z.string().trim().max(150).optional(),
+  phone: z.string().trim().max(30).optional(),
+  email: z.string().trim().max(150).optional(),
+})
+
+// En eventos empresariales se piden los datos de contacto del asistente
+const businessSchema = z.object({
+  company: z.string().trim().min(2, 'Escribe tu empresa o institución').max(150),
+  phone: z.string().trim().refine(v => v.replace(/\D/g, '').length >= 10, 'Escribe un teléfono válido (10 dígitos)'),
+  email: z.string().trim().email('Escribe un correo electrónico válido'),
 })
 
 async function generateQR(url: string): Promise<string> {
@@ -31,7 +41,7 @@ export default defineEventHandler(async (event) => {
     select: {
       id: true, name: true, date: true, time: true, venue: true,
       venueAddress: true, venueMapUrl: true, coverImage: true,
-      type: true, churchName: true, churchAddress: true, status: true,
+      type: true, category: true, churchName: true, churchAddress: true, status: true,
     },
   })
 
@@ -41,22 +51,41 @@ export default defineEventHandler(async (event) => {
   }
 
   const config = useRuntimeConfig()
-  const { companions: companionCount, companionNames } = parsed.data
+  const isBusiness = ev.category === 'BUSINESS'
 
+  let contact: z.infer<typeof businessSchema> | null = null
+  if (isBusiness) {
+    const parsedContact = businessSchema.safeParse(parsed.data)
+    if (!parsedContact.success) {
+      throw createError({ statusCode: 422, message: parsedContact.error.issues[0]?.message ?? 'Datos inválidos' })
+    }
+    contact = { ...parsedContact.data, email: parsedContact.data.email.toLowerCase() }
+  }
+
+  // En empresariales cada asistente se registra por su cuenta, sin acompañantes
+  const companionCount = isBusiness ? 0 : parsed.data.companions
+  const companionNames = isBusiness ? [] : parsed.data.companionNames
+
+  // Social: un registro por nombre. Empresarial: un registro por correo
   const existing = await prisma.guest.findFirst({
-    where: {
-      eventId: ev.id,
-      name: parsed.data.name.trim(),
-    },
+    where: contact
+      ? { eventId: ev.id, email: contact.email }
+      : { eventId: ev.id, name: parsed.data.name.trim() },
   })
   if (existing) {
-    throw createError({ statusCode: 409, message: 'Ya existe un registro con ese nombre para este evento. Si ya te registraste, revisa el QR que recibiste anteriormente.' })
+    throw createError({
+      statusCode: 409,
+      message: `Ya existe un registro con ese ${contact ? 'correo' : 'nombre'} para este evento. Si ya te registraste, revisa el QR que recibiste anteriormente.`,
+    })
   }
 
   const guest = await prisma.guest.create({
     data: {
       eventId: ev.id,
       name: parsed.data.name.trim(),
+      company: contact?.company ?? null,
+      phone: contact?.phone ?? null,
+      email: contact?.email ?? null,
       companions: companionCount,
       rsvpStatus: 'CONFIRMED',
       rsvpAt: new Date(),
@@ -100,7 +129,7 @@ export default defineEventHandler(async (event) => {
   return {
     success: true,
     data: {
-      guest: { name: guest.name, companions: guest.companions },
+      guest: { name: guest.name, company: guest.company, companions: guest.companions },
       event: ev,
       code: guestCode,
       qrImage: guestQrImage,

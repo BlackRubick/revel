@@ -142,6 +142,7 @@ model Event {
   venueAddress  String?
   venueMapUrl   String?
   type          String
+  category      String      @default("SOCIAL") // SOCIAL | BUSINESS
   tableCount    Int         @default(10)
   tableCapacity Int         @default(8)
   status        EventStatus @default(DRAFT)
@@ -196,6 +197,7 @@ model Guest {
   eventId     String
   tableId     String?
   name        String
+  company     String?
   phone       String?
   email       String?
   companions  Int        @default(0)

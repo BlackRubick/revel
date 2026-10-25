@@ -108,7 +108,7 @@
         </div>
       </div>
 
-      <DashboardGuestsTab :event-id="selectedEventId" :event-name="currentEvent?.name" :event-slug="currentEvent?.slug" />
+      <DashboardGuestsTab :event-id="selectedEventId" :event-name="currentEvent?.name" :event-slug="currentEvent?.slug" :event-category="currentEvent?.category" />
     </template>
   </div>
 </template>

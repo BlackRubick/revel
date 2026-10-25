@@ -66,12 +66,24 @@
       </div>
 
       <div class="flex items-center gap-3 flex-shrink-0">
+        <button
+          v-if="isBusiness"
+          class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border border-white/10 text-white/70 hover:text-white hover:border-white/20 transition-all disabled:opacity-50"
+          :disabled="exporting"
+          title="Descargar contactos en formato CSV (se abre en Excel)"
+          @click="exportContacts"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          {{ exporting ? 'Exportando...' : 'Exportar contactos' }}
+        </button>
         <div class="text-right">
           <p class="text-sm font-semibold text-white">{{ guestsStore.total }}</p>
           <p class="text-[10px] text-white/35 uppercase tracking-wider">{{ guestsStore.total === 1 ? 'invitado' : 'invitados' }}</p>
         </div>
-        <div class="h-8 w-px bg-white/10" />
-        <div class="text-right">
+        <div v-if="!isBusiness" class="h-8 w-px bg-white/10" />
+        <div v-if="!isBusiness" class="text-right">
           <p class="text-sm font-semibold text-white">{{ totalPersonas }}</p>
           <p class="text-[10px] text-white/35 uppercase tracking-wider">personas en total</p>
         </div>
@@ -89,7 +101,8 @@
         <thead>
           <tr>
             <th>Invitado</th>
-            <th class="hidden sm:table-cell">Acompañantes</th>
+            <th v-if="isBusiness" class="hidden sm:table-cell">Contacto</th>
+            <th v-else class="hidden sm:table-cell">Acompañantes</th>
             <th class="hidden md:table-cell">Mesa</th>
             <th>RSVP</th>
             <th class="hidden md:table-cell">Check-in</th>
@@ -105,10 +118,18 @@
             <td>
               <div>
                 <p class="font-medium text-white">{{ guest.name }}</p>
-                <p v-if="guest.email" class="text-xs text-white/35">{{ guest.email }}</p>
+                <p v-if="isBusiness && guest.company" class="text-xs text-white/50">{{ guest.company }}</p>
+                <p v-else-if="!isBusiness && guest.email" class="text-xs text-white/35">{{ guest.email }}</p>
               </div>
             </td>
-            <td class="hidden sm:table-cell">
+            <td v-if="isBusiness" class="hidden sm:table-cell">
+              <div class="text-xs space-y-0.5">
+                <a v-if="guest.email" :href="`mailto:${guest.email}`" class="block text-white/60 hover:text-revel-gold">{{ guest.email }}</a>
+                <a v-if="guest.phone" :href="`tel:${guest.phone}`" class="block text-white/40 hover:text-revel-gold">{{ guest.phone }}</a>
+                <span v-if="!guest.email && !guest.phone" class="text-white/25">—</span>
+              </div>
+            </td>
+            <td v-else class="hidden sm:table-cell">
               <span class="text-white/60">
                 {{ guest.companions > 0 ? `+${guest.companions}` : '—' }}
               </span>
@@ -245,7 +266,10 @@ const props = defineProps<{
   eventName?: string
   packageType?: string
   eventSlug?: string
+  eventCategory?: string
 }>()
+
+const isBusiness = computed(() => props.eventCategory === 'BUSINESS')
 
 const guestsStore = useGuestsStore()
 const ui = useUiStore()
@@ -259,6 +283,7 @@ const selectedGuest = ref<Guest | null>(null)
 const generatingQr = ref(false)
 const qrModalCanvas = ref<HTMLCanvasElement | null>(null)
 const linkCopied = ref(false)
+const exporting = ref(false)
 
 const registroUrl = computed(() => {
   if (!props.eventSlug) return ''
@@ -281,7 +306,8 @@ const rsvpOptions = [
 
 const filteredGuests = computed(() =>
   guestsStore.guests.filter((g) => {
-    const matchSearch = !search.value || g.name.toLowerCase().includes(search.value.toLowerCase())
+    const q = search.value.toLowerCase()
+    const matchSearch = !q || [g.name, g.company, g.email].some(v => v?.toLowerCase().includes(q))
     const matchRsvp = !rsvpFilter.value || g.rsvpStatus === rsvpFilter.value
     return matchSearch && matchRsvp
   }),
@@ -416,6 +442,44 @@ function downloadQRModal() {
   link.download = `qr-${selectedGuest.value.name.replace(/\s+/g, '-').toLowerCase()}.png`
   link.href = qrModalCanvas.value.toDataURL('image/png')
   link.click()
+}
+
+function csvCell(value: string | null | undefined) {
+  const v = value ?? ''
+  return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v
+}
+
+async function exportContacts() {
+  exporting.value = true
+  try {
+    // Se piden todos los registros, no solo la página cargada
+    const { get } = useApi()
+    const res = await get<{ data: Guest[] }>('/api/guests', { eventId: props.eventId, limit: 10000 })
+    const rows = [
+      ['Nombre', 'Empresa / Institución', 'Teléfono', 'Correo electrónico', 'Fecha de registro', 'Asistió'],
+      ...res.data.map(g => [
+        g.name,
+        g.company,
+        g.phone,
+        g.email,
+        new Date(g.createdAt).toLocaleString('es-MX'),
+        g.checkedIn ? 'Sí' : 'No',
+      ]),
+    ]
+    const csv = rows.map(r => r.map(csvCell).join(',')).join('\r\n')
+    // BOM para que Excel respete acentos
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' })
+    const link = document.createElement('a')
+    const slug = (props.eventName ?? 'evento').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    link.download = `contactos-${slug || 'evento'}.csv`
+    link.href = URL.createObjectURL(blob)
+    link.click()
+    URL.revokeObjectURL(link.href)
+  } catch {
+    ui.error('Error', 'No se pudieron exportar los contactos')
+  } finally {
+    exporting.value = false
+  }
 }
 
 async function deleteGuest(id: string) {

@@ -14,6 +14,7 @@ const schema = z.object({
   venueAddress: z.string().optional(),
   venueMapUrl: z.string().optional(),
   type: z.string(),
+  category: z.enum(['SOCIAL', 'BUSINESS']).default('SOCIAL'),
   tableCount: z.number().int().min(1).max(200).default(10),
   tableCapacity: z.number().int().min(1).max(50).default(8),
   packageId: z.string().uuid(),

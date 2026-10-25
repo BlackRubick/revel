@@ -116,6 +116,26 @@
           Información básica
         </h3>
         <div class="space-y-4">
+          <!-- Categoría: define qué datos se piden en el registro -->
+          <div>
+            <label class="block text-sm font-medium text-white/70 mb-1.5">Categoría del evento</label>
+            <div class="grid grid-cols-2 gap-3">
+              <button
+                v-for="c in eventCategories"
+                :key="c.value"
+                type="button"
+                class="relative rounded-xl border-2 p-3.5 transition-all text-left"
+                :class="form.category === c.value ? 'border-revel-gold bg-revel-gold/5' : 'border-white/10 hover:border-white/20'"
+                @click="form.category = c.value"
+              >
+                <div v-if="form.category === c.value" class="absolute top-2 right-2 w-4 h-4 rounded-full bg-revel-gold flex items-center justify-center">
+                  <svg class="w-2.5 h-2.5 text-black" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <p class="text-sm font-semibold" :class="form.category === c.value ? 'text-white' : 'text-white/60'">{{ c.label }}</p>
+                <p class="text-xs mt-0.5" :class="form.category === c.value ? 'text-white/50' : 'text-white/30'">{{ c.hint }}</p>
+              </button>
+            </div>
+          </div>
           <UiInput v-model="form.name" label="Nombre del evento" placeholder="Boda García & Martínez" required :error="errors.name" />
           <div class="grid grid-cols-2 gap-4">
             <UiSelect v-model="form.type" label="Tipo de evento" placeholder="Seleccionar" :options="eventTypes" required :error="errors.type" />
@@ -341,6 +361,7 @@ definePageMeta({ layout: 'dashboard' })
 import { useEventsStore } from '~/stores/events'
 import { useUiStore } from '~/stores/ui'
 import { getDesignsByEventType } from '~/utils/invitationDesigns'
+import type { EventCategory } from '~/types'
 
 const eventsStore = useEventsStore()
 const ui = useUiStore()
@@ -362,6 +383,7 @@ const form = reactive({
   description: '',
   coverImage: '',
   type: '',
+  category: 'SOCIAL' as EventCategory,
   packageId: '',
   date: '',
   time: '18:00',
@@ -421,6 +443,16 @@ const eventTypes = [
   { label: 'Otro',              value: 'other' },
 ]
 
+const eventCategories: { label: string; value: EventCategory; hint: string }[] = [
+  { label: 'Evento social',      value: 'SOCIAL',   hint: 'Registro con nombre y acompañantes' },
+  { label: 'Evento empresarial', value: 'BUSINESS', hint: 'Pide empresa, teléfono y correo' },
+]
+
+// Al elegir "Corporativo" se sugiere la categoría empresarial
+watch(() => form.type, (t) => {
+  if (t === 'corporate') form.category = 'BUSINESS'
+})
+
 const packageOptions = computed(() =>
   packages.value.map((p) => ({ label: p.name, value: p.id }))
 )
@@ -479,6 +511,7 @@ async function handleSubmit() {
       description:   form.description   || undefined,
       coverImage:    bgMode.value === 'photo' ? (form.coverImage || undefined) : undefined,
       type:          form.type,
+      category:      form.category,
       packageId:     form.packageId,
       date:          form.date,
       time:          form.time,
