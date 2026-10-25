@@ -14,9 +14,9 @@ const schema = z.object({
 
 // En eventos empresariales se piden los datos de contacto del asistente
 const businessSchema = z.object({
-  company: z.string().trim().min(2, 'Escribe tu empresa o institución').max(150),
-  phone: z.string().trim().refine(v => v.replace(/\D/g, '').length >= 10, 'Escribe un teléfono válido (10 dígitos)'),
-  email: z.string().trim().email('Escribe un correo electrónico válido'),
+  company: z.string({ required_error: 'Escribe tu empresa o institución' }).trim().min(2, 'Escribe tu empresa o institución').max(150),
+  phone: z.string({ required_error: 'Escribe tu teléfono' }).trim().refine(v => v.replace(/\D/g, '').length >= 10, 'Escribe un teléfono válido (10 dígitos)'),
+  email: z.string({ required_error: 'Escribe tu correo electrónico' }).trim().email('Escribe un correo electrónico válido'),
 })
 
 async function generateQR(url: string): Promise<string> {
