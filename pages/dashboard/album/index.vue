@@ -125,6 +125,14 @@
             </svg>
             {{ downloading ? 'Generando ZIP...' : `Descargar todo (${photos.length})` }}
           </button>
+          <button
+            v-if="auth.isAdmin"
+            class="text-sm px-3 py-1.5 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            :disabled="!photos.length"
+            @click="showDeleteAll = true"
+          >
+            Borrar todas
+          </button>
         </div>
       </div>
 
@@ -193,6 +201,16 @@
           <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-end p-2 opacity-0 group-hover:opacity-100">
             <p class="text-xs text-white truncate">{{ photo.guest?.name || 'Anónimo' }}</p>
           </div>
+          <button
+            v-if="auth.isAdmin"
+            class="absolute top-2 left-2 w-8 h-8 rounded-lg bg-black/60 flex items-center justify-center text-white/80 hover:text-red-400 hover:bg-black/80 transition-all sm:opacity-0 sm:group-hover:opacity-100"
+            title="Eliminar foto"
+            @click.stop="photoToDelete = photo"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -224,10 +242,37 @@
             <div class="absolute bottom-3 left-3 glass-dark rounded-xl px-3 py-1.5">
               <p class="text-xs text-white/70">{{ selectedPhoto.guest?.name || 'Invitado' }} · {{ formatDate(selectedPhoto.uploadedAt) }}</p>
             </div>
+            <button
+              v-if="auth.isAdmin"
+              class="absolute bottom-3 right-3 glass-dark rounded-xl px-3 py-1.5 text-xs text-red-400 hover:text-red-300"
+              @click="photoToDelete = selectedPhoto"
+            >
+              Eliminar foto
+            </button>
           </div>
         </div>
       </Transition>
     </Teleport>
+
+    <UiConfirm
+      :model-value="!!photoToDelete"
+      title="Eliminar foto"
+      message="La foto y sus dedicatorias se borrarán definitivamente del álbum. Esta acción no se puede deshacer."
+      confirm-text="Eliminar"
+      danger
+      :loading="deleting"
+      @update:model-value="(v: boolean) => { if (!v) photoToDelete = null }"
+      @confirm="deletePhoto"
+    />
+    <UiConfirm
+      v-model="showDeleteAll"
+      title="Borrar todas las fotos"
+      :message="`Se borrarán definitivamente las ${photos.length} fotos de «${currentEvent?.name}» y sus dedicatorias. Esta acción no se puede deshacer.`"
+      confirm-text="Borrar todas"
+      danger
+      :loading="deleting"
+      @confirm="deleteAllPhotos"
+    />
   </div>
 </template>
 
@@ -235,9 +280,13 @@
 definePageMeta({ layout: 'dashboard' })
 
 import { useEventsStore } from '~/stores/events'
+import { useAuthStore } from '~/stores/auth'
+import { useUiStore } from '~/stores/ui'
 import type { Photo, PhotoAnnotation } from '~/types'
 
 const eventsStore = useEventsStore()
+const auth = useAuthStore()
+const ui = useUiStore()
 const { get, put, del, getHeaders } = useApi()
 
 const selectedEventId = ref('')
@@ -247,6 +296,9 @@ const loadingPhotos = ref(false)
 const downloading = ref(false)
 const selectedPhoto = ref<Photo | null>(null)
 const search = ref('')
+const photoToDelete = ref<Photo | null>(null)
+const showDeleteAll = ref(false)
+const deleting = ref(false)
 
 const view = ref<'photos' | 'annotations'>('photos')
 const annotations = ref<PhotoAnnotation[]>([])
@@ -301,6 +353,46 @@ async function selectEvent(id: string) {
     photos.value = res.data
   } finally {
     loadingPhotos.value = false
+  }
+}
+
+function setEventPhotoCount(count: number) {
+  const ev = eventsStore.events.find((e) => e.id === selectedEventId.value)
+  if (ev?._count) ev._count.photos = count
+}
+
+async function deletePhoto() {
+  const photo = photoToDelete.value
+  if (!photo) return
+  deleting.value = true
+  try {
+    await del(`/api/photos/${photo.id}`)
+    photos.value = photos.value.filter((p) => p.id !== photo.id)
+    setEventPhotoCount(photos.value.length)
+    if (selectedPhoto.value?.id === photo.id) selectedPhoto.value = null
+    photoToDelete.value = null
+    ui.success('Foto eliminada')
+  } catch {
+    ui.error('Error', 'No se pudo eliminar la foto')
+  } finally {
+    deleting.value = false
+  }
+}
+
+async function deleteAllPhotos() {
+  if (!selectedEventId.value) return
+  deleting.value = true
+  try {
+    const res = await del<{ deleted: number }>(`/api/events/${selectedEventId.value}/photos`)
+    photos.value = []
+    annotations.value = []
+    setEventPhotoCount(0)
+    showDeleteAll.value = false
+    ui.success('Fotos eliminadas', `${res.deleted} fotos borradas`)
+  } catch {
+    ui.error('Error', 'No se pudieron eliminar las fotos')
+  } finally {
+    deleting.value = false
   }
 }
 
