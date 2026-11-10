@@ -134,7 +134,30 @@
             </div>
           </div>
 
-          
+
+          <div class="flex flex-col items-center gap-3 p-4 rounded-2xl border border-revel-gold/20 bg-revel-gold/5">
+            <p class="text-xs text-revel-gold/70 font-medium uppercase tracking-wider">QR para publicidad · Registro de invitados</p>
+            <div class="bg-white p-3 rounded-xl">
+              <canvas ref="registroQrCanvas" class="w-40 h-40 block" />
+            </div>
+            <p class="text-xs text-white/40 text-center">Ponlo en tus invitaciones, carteles o redes: al escanearlo, tus invitados llegan directo al registro del evento. No caduca.</p>
+            <div class="flex items-center gap-2 w-full">
+              <button
+                class="flex-1 text-xs text-revel-gold border border-revel-gold/30 rounded-lg py-2 hover:bg-revel-gold/10 transition-colors"
+                @click="copyLink(registroUrl)"
+              >
+                Copiar link
+              </button>
+              <button
+                class="flex-1 text-xs text-revel-black bg-revel-gold rounded-lg py-2 font-semibold hover:opacity-90 transition-opacity"
+                @click="downloadRegistroQR"
+              >
+                Descargar QR
+              </button>
+            </div>
+          </div>
+
+
           <div class="space-y-2">
             <div
               v-for="link in eventLinks"
@@ -690,6 +713,35 @@ function downloadQR() {
   link.click()
 }
 
+const registroQrCanvas = ref<HTMLCanvasElement | null>(null)
+
+async function generateRegistroQR() {
+  if (!registroQrCanvas.value || !event.value?.slug) return
+  const QRCode = await import('qrcode')
+  await QRCode.toCanvas(registroQrCanvas.value, registroUrl.value, {
+    width: 160,
+    margin: 0,
+    errorCorrectionLevel: 'H',
+    color: { dark: '#000000', light: '#ffffff' },
+  })
+}
+
+// Se descarga en alta resolución (1200px) para que se vea nítido impreso
+async function downloadRegistroQR() {
+  if (!event.value?.slug) return
+  const QRCode = await import('qrcode')
+  const dataUrl = await QRCode.toDataURL(registroUrl.value, {
+    width: 1200,
+    margin: 2,
+    errorCorrectionLevel: 'H',
+    color: { dark: '#000000', light: '#ffffff' },
+  })
+  const link = document.createElement('a')
+  link.download = `qr-registro-${event.value.name.replace(/\s+/g, '-').toLowerCase()}.png`
+  link.href = dataUrl
+  link.click()
+}
+
 function copyLink(url: string) {
   navigator.clipboard.writeText(url)
   ui.success('Copiado', 'Enlace copiado al portapapeles')
@@ -747,10 +799,17 @@ async function loadEvent(id: string) {
   event.value = data
   loading.value = false
   await nextTick()
-  await generateQR()
+  await Promise.all([generateQR(), generateRegistroQR()])
 }
 
 onMounted(() => loadEvent(route.params.id as string))
+
+// El resumen se vuelve a montar al cambiar de pestaña: hay que redibujar los QR
+watch(activeTab, async (tab) => {
+  if (tab !== 'overview') return
+  await nextTick()
+  await Promise.all([generateQR(), generateRegistroQR()])
+})
 
 watch(() => route.params.id, (newId) => {
   if (newId) loadEvent(newId as string)
